@@ -1,0 +1,44 @@
+<resources>
+    <string name="app_name">Train Scheduler</string>
+    <string name="from_hint">Откуда</string>
+    <string name="to_hint">Куда</string>
+    <string name="from_to_hint">Откуда —> Куда</string>
+    <string name="date_view_text">Дата</string>
+    <string name="from_date_hint">Туда</string>
+    <string name="to_date_hint">Обратно</string>
+    <string name="train_date">Дата отправления</string>
+    <string name="train_time">Время отправления</string>
+    <string name="travel_time">Время в пути</string>
+    <string name="travel_days">дней</string>
+    <string name="travel_hours">часов</string>
+    <string name="travel_minutes">мин</string>
+    <string name="tickets">Билеты</string>
+    <string name="currency">Валюта</string>
+    <string name="ticket_price">Стоимость билета</string>
+    <string name="login_view_text">Логин</string>
+    <string name="password_view_text">Пароль</string>
+    <string name="login_btn_text">Войти</string>
+    <string name="add_fab_description">Добавить новый рейс</string>
+    <string name="show_trains">Поезда</string>
+    <string name="show_electric">Электрички</string>
+    <string name="find_routes">Найти рейсы</string>
+    <string name="et_available">электронный билет</string>
+    <string-array name="blank_currencies">
+        <item>RUB</item>
+    </string-array>
+    <string name="ticket_name">Название</string>
+    <string name="tickets_tab">Билеты</string>
+    <string name="follow_tab">Станции следования</string>
+    <string name="departure">Отправление</string>
+    <string name="arrival">Прибытие</string>
+    <string name="station_hint">Станция</string>
+    <string-array name="languages">
+        <item>Русский</item>
+        <item>English</item>
+    </string-array>
+    <string name="settings_header">Настройки</string>
+    <string name="dark_mode">Темная тема</string>
+    <string name="language">Язык</string>
+    <string name="show_in_currency">Показывать цены в валюте</string>
+    <string name="apply_settings">Применить</string>
+</resources>

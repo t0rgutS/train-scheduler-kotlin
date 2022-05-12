@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/trainScheduleFragment">
+
+    <fragment
+        android:id="@+id/trainScheduleFragment"
+        android:name="ru.mirea.trainscheduler.view.TrainScheduleFragment"
+        android:label="train_schedule_fragment"
+        tools:layout="@layout/train_schedule_fragment" >
+        <action
+            android:id="@+id/action_trainScheduleFragment_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
+        <action
+            android:id="@+id/action_trainScheduleFragment_to_displayScheduleFragment"
+            app:destination="@id/displayScheduleFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/scheduleElementFragment"
+        android:name="ru.mirea.trainscheduler.view.ScheduleElementFragment"
+        android:label="schedule_element_fragment"
+        tools:layout="@layout/schedule_element_fragment" >
+        <action
+            android:id="@+id/action_scheduleElementFragment_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="ru.mirea.trainscheduler.view.SettingsFragment"
+        android:label="settings_fragment"
+        tools:layout="@layout/settings_fragment" />
+    <fragment
+        android:id="@+id/displayScheduleFragment"
+        android:name="ru.mirea.trainscheduler.view.DisplayScheduleFragment"
+        android:label="display_schedule_fragment"
+        tools:layout="@layout/display_schedule_fragment" >
+        <action
+            android:id="@+id/action_displayScheduleFragment_to_scheduleElementFragment"
+            app:destination="@id/scheduleElementFragment" />
+        <action
+            android:id="@+id/action_displayScheduleFragment_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
+    </fragment>
+</navigation>
