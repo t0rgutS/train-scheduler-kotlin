@@ -10,32 +10,36 @@ import ru.mirea.trainscheduler.model.ScheduleSegment
 
 class TrainScheduleViewModel : ViewModel() {
 
-    fun findLocations(searchBy: String): Flow<List<Location>> {
-        return ServiceLocator.getScheduleService().findLocations(searchBy)
+    fun suggestLocations(suggestBy: String): Flow<List<Location>> {
+        return ServiceLocator.getScheduleService().suggestLocations(suggestBy)
     }
 
- /*   fun getSchedule(
-        from: String,
-        to: String,
-        date: String,
-        type: String,
-    ): Flow<List<ScheduleSegment>> {
-        return ServiceLocator.getScheduleService().getSchedule(from, to, date, type)
-            .map { segments ->
-                segments.forEach { segment ->
-                    segment.tickets.forEach { ticket ->
-                        val ticketCurrency = ticket.currency
-                        val defaultCurrency = TrainSchedulerSettings.defaultCurrency.code
-                        if (ticketCurrency != defaultCurrency) {
-                            ServiceLocator.getCurrencyConverter().convert(ticketCurrency!!,
-                                defaultCurrency!!, ticket.price!!).collect { convertedPrice ->
-                                ticket.price = convertedPrice
-                                ticket.displayCurrency = defaultCurrency
-                            }
-                        }
-                    }
-                }
-                segments
-            }
-    }*/
+    fun findLocation(searchBy: String): Flow<Location?> {
+        return ServiceLocator.getScheduleService().findLocation(searchBy)
+    }
+
+    /*   fun getSchedule(
+           from: String,
+           to: String,
+           date: String,
+           type: String,
+       ): Flow<List<ScheduleSegment>> {
+           return ServiceLocator.getScheduleService().getSchedule(from, to, date, type)
+               .map { segments ->
+                   segments.forEach { segment ->
+                       segment.tickets.forEach { ticket ->
+                           val ticketCurrency = ticket.currency
+                           val defaultCurrency = TrainSchedulerSettings.defaultCurrency.code
+                           if (ticketCurrency != defaultCurrency) {
+                               ServiceLocator.getCurrencyConverter().convert(ticketCurrency!!,
+                                   defaultCurrency!!, ticket.price!!).collect { convertedPrice ->
+                                   ticket.price = convertedPrice
+                                   ticket.displayCurrency = defaultCurrency
+                               }
+                           }
+                       }
+                   }
+                   segments
+               }
+       }*/
 }

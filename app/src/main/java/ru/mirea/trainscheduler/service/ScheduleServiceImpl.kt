@@ -13,20 +13,22 @@ class ScheduleServiceImpl(
     private val localRepository: LocalScheduleRepository,
 ) : ScheduleService {
 
-    override fun findLocations(searchBy: String): Flow<List<Location>> {
+    override fun suggestLocations(suggestBy: String): Flow<List<Location>> {
         return if (localRepository.locationsExists())
-            localRepository.findLocations(searchBy)
+            localRepository.suggestLocations(suggestBy)
         else
             remoteRepository.getAvailableLocations()
                 .map { remoteLocations ->
                     val filteredLocations = remoteLocations.filter {
-                        it.country?.contains(searchBy) == true
-                                || it.region?.contains(searchBy) == true
-                                || it.city?.contains(searchBy) == true
+                        it.city?.startsWith(suggestBy) == true
                     }
                     localRepository.addLocationList(remoteLocations)
                     filteredLocations
                 }
+    }
+
+    override fun findLocation(searchBy: String): Flow<Location?> {
+        return localRepository.findLocation(searchBy)
     }
 
     override fun getSchedule(

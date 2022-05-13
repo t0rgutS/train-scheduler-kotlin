@@ -13,4 +13,8 @@ class Currency {
     constructor(code: String) {
         this.code = code
     }
+
+    override fun toString(): String {
+        return code ?: ""
+    }
 }

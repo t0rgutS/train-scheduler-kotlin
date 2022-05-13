@@ -10,6 +10,12 @@ import ru.mirea.trainscheduler.model.CurrencyExchange
 
 @Dao
 interface ExchangeDao {
+    @Query("SELECT COUNT(*) FROM currencies")
+    fun countCurrencies(): Long
+
+    @Query("SELECT COUNT(*) FROM currency_exchange")
+    fun countExchanges(): Long
+
     @Query("SELECT * FROM currencies")
     fun getCurrencies(): Flow<List<Currency>>
 

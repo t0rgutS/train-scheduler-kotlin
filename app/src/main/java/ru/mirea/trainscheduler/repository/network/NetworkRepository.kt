@@ -10,20 +10,19 @@ import retrofit2.Callback
 import retrofit2.Response
 import ru.mirea.trainscheduler.BuildConfig
 import ru.mirea.trainscheduler.model.*
+import ru.mirea.trainscheduler.repository.CurrencyRepository
 import ru.mirea.trainscheduler.repository.RemoteScheduleRepository
 import ru.mirea.trainscheduler.repository.ScheduleRepository
-import ru.mirea.trainscheduler.repository.network.model.FollowStations
-import ru.mirea.trainscheduler.repository.network.model.StationList
-import ru.mirea.trainscheduler.repository.network.model.TrainSchedule
-import ru.mirea.trainscheduler.repository.network.model.YandexApiStation
+import ru.mirea.trainscheduler.repository.network.model.*
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.stream.Collectors
 
-class NetworkRepository : RemoteScheduleRepository {
+class NetworkRepository : RemoteScheduleRepository, CurrencyRepository {
     companion object {
-        private const val apiKey = BuildConfig.YANDEX_SCHEDULE_API_KEY
+        private const val yandexApiKey = BuildConfig.YANDEX_SCHEDULE_API_KEY
+        private const val exchangeApiKey = BuildConfig.EXCHANGE_RATE_API_KEY
     }
 
     override fun getAvailableLocations(): Flow<List<Location>> = callbackFlow {
@@ -60,7 +59,7 @@ class NetworkRepository : RemoteScheduleRepository {
 
         }
         val call = YandexScheduleApiClient.getApi()
-            .getAvailableLocations(apiKey)
+            .getAvailableLocations(yandexApiKey)
         call.enqueue(stationCallback)
         awaitClose { call.cancel() }
     }
@@ -76,7 +75,7 @@ class NetworkRepository : RemoteScheduleRepository {
         val scheduleSegmentList: MutableList<ScheduleSegment> = mutableListOf()
         do {
             val trainSchedule = YandexScheduleApiClient.getApi()
-                .getTrainSchedule(apiKey, from, to, date, type, readCount).execute().body()
+                .getTrainSchedule(yandexApiKey, from, to, date, type, readCount).execute().body()
             if (trainSchedule != null) {
                 if (trainSchedule.pagination != null) {
                     totalCount = trainSchedule.pagination!!.total!!
@@ -132,7 +131,7 @@ class NetworkRepository : RemoteScheduleRepository {
                 close(t)
             }
         }
-        val call = YandexScheduleApiClient.getApi().getFollowStations(apiKey, uid, from, to)
+        val call = YandexScheduleApiClient.getApi().getFollowStations(yandexApiKey, uid, from, to)
         call.enqueue(followStationCallback)
         awaitClose { call.cancel() }
     }
@@ -160,5 +159,68 @@ class NetworkRepository : RemoteScheduleRepository {
             ticket.canBeElectronic = ticketsInfo.etMarker
             ticket
         }?.collect(Collectors.toList())
+    }
+
+    override fun getCurrencies(): Flow<List<Currency>> = callbackFlow {
+        val currencyCallback = object : Callback<CurrencyCodes?> {
+            override fun onResponse(
+                call: Call<CurrencyCodes?>,
+                response: Response<CurrencyCodes?>,
+            ) {
+                val currencyList = mutableListOf<Currency>()
+                if (response.isSuccessful) {
+                    val currencyCodes = response.body()
+                    if (currencyCodes?.supportedCodes != null) {
+                        currencyList.addAll(currencyCodes.supportedCodes
+                            .stream().map { codePair ->
+                                Currency(codePair[0])
+                            }.collect(Collectors.toList()))
+                    }
+                }
+                trySend(currencyList)
+                close()
+            }
+
+            override fun onFailure(call: Call<CurrencyCodes?>, t: Throwable) {
+                close(t)
+            }
+        }
+        val call = ExchangeRateApiClient.getApi().getSupportedCodes(exchangeApiKey)
+        call.enqueue(currencyCallback)
+        awaitClose { call.cancel() }
+    }
+
+    override fun getExchange(source: String, target: String): Flow<CurrencyExchange?> =
+        callbackFlow {
+            val exchangeCallback = object : Callback<ConvertPair?> {
+                override fun onResponse(
+                    call: Call<ConvertPair?>,
+                    response: Response<ConvertPair?>,
+                ) {
+                    if (response.isSuccessful && response.body() != null)
+                        trySend(convertRemoteExchange(response.body()!!))
+                    else trySend(null)
+                    close()
+
+                }
+
+                override fun onFailure(call: Call<ConvertPair?>, t: Throwable) {
+                    close(t)
+                }
+            }
+            val call =
+                ExchangeRateApiClient.getApi().getConvertPairRate(exchangeApiKey, source, target)
+            call.enqueue(exchangeCallback)
+            awaitClose { call.cancel() }
+        }
+
+    private fun convertRemoteExchange(remoteExchange: ConvertPair): CurrencyExchange {
+        val currencyExchange = CurrencyExchange()
+        currencyExchange.source = remoteExchange.baseCode
+        currencyExchange.target = remoteExchange.targetCode
+        currencyExchange.lastModifiedOn = remoteExchange.timeLastUpdateUnix
+        currencyExchange.nextUpdateOn = remoteExchange.timeNextUpdateUnix
+        currencyExchange.rate = remoteExchange.conversionRate
+        return currencyExchange
     }
 }

@@ -8,12 +8,11 @@ import android.widget.ArrayAdapter
 import android.widget.TextView
 import ru.mirea.trainscheduler.R
 import ru.mirea.trainscheduler.model.Location
-import ru.mirea.trainscheduler.model.Station
 
 class LocationAutoCompleteAdapter(
     private val initContext: Context,
     val locations: List<Location>,
-) : ArrayAdapter<Location>(initContext, R.layout.location_auto_complete_item) {
+) : ArrayAdapter<Location>(initContext, R.layout.auto_complete_item) {
     override fun getCount(): Int {
         return locations.size
     }
@@ -26,11 +25,11 @@ class LocationAutoCompleteAdapter(
         var convertView = view
         if (convertView == null) {
             val inflater = (initContext as Activity).layoutInflater
-            convertView = inflater.inflate(R.layout.location_auto_complete_item, parent, false)
+            convertView = inflater.inflate(R.layout.auto_complete_item, parent, false)
         }
         try {
             val location: Location = getItem(position)
-            val locationName = convertView!!.findViewById<View>(R.id.location_name) as TextView
+            val locationName = convertView!!.findViewById<View>(R.id.item_name) as TextView
             locationName.text = location.toString()
         } catch (e: Exception) {
             e.printStackTrace()

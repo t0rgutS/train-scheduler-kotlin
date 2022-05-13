@@ -4,11 +4,11 @@ import kotlinx.coroutines.flow.Flow
 import ru.mirea.trainscheduler.model.Location
 
 interface LocalScheduleRepository {
-    fun addLocationList(
-        locationList: List<Location>,
-    )
+    fun addLocationList(locationList: List<Location>)
 
     fun locationsExists(): Boolean
 
-    fun findLocations(searchBy: String): Flow<List<Location>>
+    fun suggestLocations(suggestBy: String): Flow<List<Location>>
+
+    fun findLocation(searchBy: String): Flow<Location?>
 }

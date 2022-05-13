@@ -1,6 +1,5 @@
 package ru.mirea.trainscheduler.repository.network.api
 
-import kotlinx.coroutines.flow.Flow
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -13,8 +12,8 @@ interface ExchangeApi {
         @Path("key") apiKey: String,
         @Path("source") sourceCurrency: String,
         @Path("target") targetCurrency: String,
-    ): Flow<ConvertPair?>
+    ): Call<ConvertPair?>
 
     @GET("/v6/{key}/codes")
-    fun getSupportedCodes(@Path("key") apiKey: String?): Flow<CurrencyCodes?>
+    fun getSupportedCodes(@Path("key") apiKey: String?): Call<CurrencyCodes?>
 }

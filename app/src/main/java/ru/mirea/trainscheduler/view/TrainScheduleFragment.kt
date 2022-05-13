@@ -14,6 +14,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.tabs.TabLayout
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import ru.mirea.trainscheduler.R
 import ru.mirea.trainscheduler.databinding.TrainScheduleFragmentBinding
@@ -84,11 +85,11 @@ class TrainScheduleFragment : Fragment() {
                     val searchBy: String = if (s[0].isUpperCase()) s.toString() else
                         s[0].uppercase() + s.substring(1)
                     lifecycleScope.launch(Dispatchers.IO) {
-                        viewModel.findLocations(searchBy).collect { found ->
+                        viewModel.suggestLocations(searchBy).collect { suggested ->
                             requireActivity().runOnUiThread {
                                 val stationListAdapter = LocationAutoCompleteAdapter(
                                     requireContext(),
-                                    found
+                                    suggested
                                 )
                                 binding.from.setAdapter(stationListAdapter)
                                 stationListAdapter.notifyDataSetChanged()
@@ -111,11 +112,11 @@ class TrainScheduleFragment : Fragment() {
                     val searchBy: String = if (s[0].isUpperCase()) s.toString() else
                         s[0].uppercase() + s.substring(1)
                     lifecycleScope.launch(Dispatchers.IO) {
-                        viewModel.findLocations(searchBy).collect { found ->
+                        viewModel.suggestLocations(searchBy).collect { suggested ->
                             requireActivity().runOnUiThread {
                                 val stationListAdapter = LocationAutoCompleteAdapter(
                                     requireContext(),
-                                    found
+                                    suggested
                                 )
                                 binding.to.setAdapter(stationListAdapter)
                                 stationListAdapter.notifyDataSetChanged()
@@ -159,46 +160,60 @@ class TrainScheduleFragment : Fragment() {
     }
 
     private fun getSchedule() {
-        var fromCode = from?.getDefaultCode()
-        var toCode = to?.getDefaultCode()
-        if (fromCode == null) {
-            Toast.makeText(requireContext(), "Выберите точку отправления!", Toast.LENGTH_LONG)
-                .show()
-            return
+        if (from != null && to != null && binding.fromDate.text.isNotEmpty()) {
+            navigateToSchedule(from!!.getDefaultCode()!!, to!!.getDefaultCode()!!, binding.fromDate.text.toString())
+        } else if ((from == null || to == null) && binding.from.text.isNotEmpty()
+            && binding.to.text.isNotEmpty() && binding.fromDate.text.isNotEmpty()
+        ) {
+            lifecycleScope.launch(Dispatchers.IO) {
+                if (from == null && binding.from.text.isNotEmpty()) {
+                    from = viewModel.findLocation(binding.from.text.toString()).firstOrNull()
+                }
+                if (to == null && binding.to.text.isNotEmpty()) {
+                    to = viewModel.findLocation(binding.to.text.toString()).firstOrNull()
+                }
+                requireActivity().runOnUiThread {
+                    if (from == null || to == null) {
+                        Toast.makeText(requireContext(),
+                            "Выберите точку " +
+                                    "${if (from == null) "отправления" else "прибытия"}!",
+                            Toast.LENGTH_LONG)
+                            .show()
+                    } else navigateToSchedule(from!!.getDefaultCode()!!,
+                        to!!.getDefaultCode()!!,
+                        binding.fromDate.text.toString())
+                }
+            }
+        } else {
+            if (from == null) {
+                Toast.makeText(requireContext(), "Выберите точку отправления!", Toast.LENGTH_LONG)
+                    .show()
+                return
+            }
+            if (to == null) {
+                Toast.makeText(requireContext(), "Выберите точку прибытия!", Toast.LENGTH_LONG)
+                    .show()
+                return
+            }
+            if (binding.fromDate.text.isEmpty()) {
+                Toast.makeText(
+                    requireContext(), "Выберите дату!",
+                    Toast.LENGTH_LONG
+                ).show()
+                return
+            }
         }
-        if (toCode == null) {
-            Toast.makeText(requireContext(), "Выберите точку прибытия!", Toast.LENGTH_LONG).show()
-            return
-        }
-        if (binding.fromDate.text.isEmpty()) {
-            Toast.makeText(
-                requireContext(), "Выберите дату!",
-                Toast.LENGTH_LONG
-            ).show()
-            return
-        }
+    }
+
+    private fun navigateToSchedule(fromCode: String, toCode: String, date: String) {
         val selectedTabPos = binding.transportType.selectedTabPosition
         findNavController().navigate(R.id.action_trainScheduleFragment_to_displayScheduleFragment,
             Bundle().also {
                 it.putString(DisplayScheduleViewModel.FROM_CODE_ARG, fromCode)
                 it.putString(DisplayScheduleViewModel.TO_CODE_ARG, toCode)
-                it.putString(DisplayScheduleViewModel.DATE_ARG, binding.fromDate.text.toString())
+                it.putString(DisplayScheduleViewModel.DATE_ARG, date)
                 it.putString(DisplayScheduleViewModel.TRANSPORT_TYPE_ARG,
                     defineTransportType(selectedTabPos))
             })
-        /* viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-             val selectedTabPos = binding.transportType.selectedTabPosition
-             viewModel.getSchedule(
-                 fromCode,
-                 toCode,
-                 binding.fromDate.text.toString(),
-                 defineTransportType(selectedTabPos)
-             ).collect { scheduleList ->
-                 scheduleList.sortedBy { it.getDepartureTimeAsString() }
-                 requireActivity().runOnUiThread {
-                     binding.schedule.adapter = ScheduleAdapter(scheduleList)
-                 }
-             }
-         }*/
     }
 }

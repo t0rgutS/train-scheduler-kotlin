@@ -41,7 +41,7 @@ class DisplayScheduleViewModel : ViewModel() {
                         val ticketCurrency = ticket.currency
                         val defaultCurrency = TrainSchedulerSettings.defaultCurrency.code
                         if (ticketCurrency != defaultCurrency) {
-                            ServiceLocator.getCurrencyConverter().convert(ticketCurrency!!,
+                            ServiceLocator.getCurrencyService().convert(ticketCurrency!!,
                                 defaultCurrency!!, ticket.price!!).collect { convertedPrice ->
                                 ticket.price = convertedPrice
                                 ticket.displayCurrency = defaultCurrency

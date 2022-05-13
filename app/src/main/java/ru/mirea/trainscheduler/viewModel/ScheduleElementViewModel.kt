@@ -33,7 +33,7 @@ class ScheduleElementViewModel : ViewModel() {
             tickets.forEach { ticket ->
                 if (ticket.displayCurrency != defaultCurrency) {
                     viewModelScope.launch {
-                        ServiceLocator.getCurrencyConverter()
+                        ServiceLocator.getCurrencyService()
                             .convert(ticket.currency!!, defaultCurrency!!,
                                 ticket.price!!).collect { convertedPrice ->
                                 ticket.displayCurrency = defaultCurrency
