@@ -24,7 +24,7 @@ class FollowStationAdapter(private val stations: List<Station>) :
         if (item.getArrival().isNullOrEmpty())
             holder.binding.arrivalSection.isVisible = false
         else
-            holder.binding.arrival.setText(item.getDeparture())
+            holder.binding.arrival.setText(item.getArrival())
         if (item.getDeparture().isNullOrEmpty())
             holder.binding.departureSection.isVisible = false
         else

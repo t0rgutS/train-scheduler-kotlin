@@ -1,9 +1,8 @@
-package ru.mirea.trainscheduler.view
+package ru.mirea.trainscheduler
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import ru.mirea.trainscheduler.R
-import ru.mirea.trainscheduler.ServiceLocator
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import ru.mirea.trainscheduler.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -13,6 +12,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        ServiceLocator.init(this)
+        ServiceLocator.init(this, lifecycleScope)
     }
 }

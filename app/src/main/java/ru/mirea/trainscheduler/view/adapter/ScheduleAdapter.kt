@@ -54,15 +54,13 @@ class ScheduleAdapter(private val scheduleList: List<ScheduleSegment>) :
     }
 
     private fun getPriceAsString(tickets: List<Ticket>): String {
-
         val minPriceTicket = tickets.minByOrNull { it.price!! }
         val maxPriceTicket = tickets.maxByOrNull { it.price!! }
         if (minPriceTicket != null && maxPriceTicket != null) {
             return if (minPriceTicket.price == maxPriceTicket.price) {
-                "${minPriceTicket.price} ${minPriceTicket.currency}"
+                "${minPriceTicket.price} ${minPriceTicket.getCurrencyAsString()}"
             } else {
-                "от ${minPriceTicket.price} ${minPriceTicket.currency}" +
-                        "до ${maxPriceTicket.price} ${maxPriceTicket.currency}"
+                "от ${minPriceTicket.price} до ${maxPriceTicket.price} ${maxPriceTicket.getCurrencyAsString()}"
             }
         }
         return ""

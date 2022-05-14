@@ -2,19 +2,15 @@ package ru.mirea.trainscheduler.viewModel
 
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import ru.mirea.trainscheduler.ServiceLocator
-import ru.mirea.trainscheduler.config.TrainSchedulerSettings
 import ru.mirea.trainscheduler.model.Location
-import ru.mirea.trainscheduler.model.ScheduleSegment
 
 class TrainScheduleViewModel : ViewModel() {
-
     fun suggestLocations(suggestBy: String): Flow<List<Location>> {
         return ServiceLocator.getScheduleService().suggestLocations(suggestBy)
     }
 
-    fun findLocation(searchBy: String): Flow<Location?> {
+    fun findLocation(searchBy: String): Location? {
         return ServiceLocator.getScheduleService().findLocation(searchBy)
     }
 

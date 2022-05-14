@@ -40,5 +40,9 @@
     <string name="dark_mode">Темная тема</string>
     <string name="language">Язык</string>
     <string name="show_in_currency">Показывать цены в валюте</string>
+    <string name="location_count">Локаций загружено</string>
+    <string name="resync_locations">Ресинхронизировать</string>
+    <string name="exchange_count">Конвертаций валют загружено</string>
+    <string name="clear_exchanges">Очистить</string>
     <string name="apply_settings">Применить</string>
 </resources>

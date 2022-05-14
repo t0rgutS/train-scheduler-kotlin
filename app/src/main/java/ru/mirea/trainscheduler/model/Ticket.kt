@@ -7,9 +7,9 @@ class Ticket {
     var currency: String? = null
     var displayCurrency: String? = null
 
-    fun getPriceAsString(): String {
+    fun getCurrencyAsString(): String? {
         if (currency != displayCurrency)
-            return "$price $displayCurrency (оплата принимается в $currency)"
-        return "$price $displayCurrency"
+            return "$displayCurrency (оплата принимается в $currency)"
+        return displayCurrency
     }
 }

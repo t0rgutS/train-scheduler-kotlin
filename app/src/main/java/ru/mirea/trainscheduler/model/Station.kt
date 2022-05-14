@@ -4,6 +4,11 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 class Station {
+    companion object {
+        const val TARGET_DATE_FORMAT = "dd.MM.yyyy HH:mm:ss"
+        const val INITIAL_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss"
+    }
+
     var id: Long? = null
     var codes: Map<String, String>? = HashMap()
     var transportType: String? = null
@@ -16,14 +21,14 @@ class Station {
 
     fun setDeparture(departure: String?) {
         if(!departure.isNullOrEmpty())
-        this.departure = LocalDateTime.parse(departure, DateTimeFormatter.ISO_DATE_TIME)
-            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+            this.departure = LocalDateTime.parse(departure, DateTimeFormatter.ofPattern(
+                INITIAL_DATE_FORMAT)).format(DateTimeFormatter.ofPattern(TARGET_DATE_FORMAT))
     }
 
     fun setArrival(arrival: String?) {
         if(!arrival.isNullOrEmpty())
-        this.arrival = LocalDateTime.parse(arrival, DateTimeFormatter.ISO_DATE_TIME)
-            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+            this.arrival = LocalDateTime.parse(arrival, DateTimeFormatter.ofPattern(
+                INITIAL_DATE_FORMAT)).format(DateTimeFormatter.ofPattern(TARGET_DATE_FORMAT))
     }
 
     fun getDeparture(): String? {
@@ -41,7 +46,7 @@ class Station {
         return code
     }
 
-    fun getLocation(): String {
+    private fun getLocation(): String {
         if (!country.isNullOrEmpty() && !settlement.isNullOrEmpty())
             return "$settlement, $country"
         return "${if (!country.isNullOrEmpty()) country else settlement}"

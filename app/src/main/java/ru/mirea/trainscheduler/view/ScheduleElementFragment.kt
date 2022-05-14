@@ -45,7 +45,7 @@ class ScheduleElementFragment : Fragment() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.to_settings)
             findNavController()
-                .navigate(R.id.action_trainScheduleFragment_to_settingsFragment)
+                .navigate(R.id.action_scheduleElementFragment_to_settingsFragment)
         return false
     }
 
@@ -101,7 +101,7 @@ class ScheduleElementFragment : Fragment() {
         val hours = minutes / 60
         val days = hours / 24
         return (if (days > 0) "$days дней " else "" + if (hours > 0) "$hours часов " else "" +
-                if (minutes > 0) "$minutes дней" else "").trim()
+                if (minutes > 0) "$minutes минут" else "").trim()
     }
 
 }

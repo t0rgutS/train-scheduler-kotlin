@@ -6,9 +6,11 @@ import ru.mirea.trainscheduler.model.Location
 interface LocalScheduleRepository {
     fun addLocationList(locationList: List<Location>)
 
+    fun getLocationCount(): Long
+
     fun locationsExists(): Boolean
 
     fun suggestLocations(suggestBy: String): Flow<List<Location>>
 
-    fun findLocation(searchBy: String): Flow<Location?>
+    fun findLocation(searchBy: String): Location?
 }

@@ -27,4 +27,7 @@ interface ExchangeDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun addCurrencyList(currencyList: List<Currency>)
+
+    @Query("DELETE FROM currency_exchange")
+    fun clearExchanges()
 }

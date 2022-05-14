@@ -8,17 +8,20 @@ import androidx.room.TypeConverters
 import ru.mirea.trainscheduler.model.Currency
 import ru.mirea.trainscheduler.model.CurrencyExchange
 import ru.mirea.trainscheduler.model.Location
+import ru.mirea.trainscheduler.model.Profile
 import ru.mirea.trainscheduler.repository.room.converter.MapToStringConverter
 import ru.mirea.trainscheduler.repository.room.dao.ExchangeDao
 import ru.mirea.trainscheduler.repository.room.dao.LocationDao
+import ru.mirea.trainscheduler.repository.room.dao.ProfileDao
 import java.util.concurrent.Executors
 
-@Database(entities = [Location::class, CurrencyExchange::class, Currency::class],
-    version = 1)
+@Database(entities = [Location::class, CurrencyExchange::class, Currency::class, Profile::class],
+    version = 2)
 @TypeConverters(MapToStringConverter::class)
 abstract class TrainScheduleDatabase : RoomDatabase() {
     abstract fun locationDao(): LocationDao
     abstract fun exchangeDao(): ExchangeDao
+    abstract fun profileDao(): ProfileDao
     val executor = Executors.newFixedThreadPool(THREAD_MAX_COUNT)
 
     companion object {

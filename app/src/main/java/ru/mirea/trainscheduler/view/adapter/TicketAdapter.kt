@@ -9,6 +9,10 @@ import ru.mirea.trainscheduler.model.Ticket
 
 class TicketAdapter(private val tickets: List<Ticket>) :
     RecyclerView.Adapter<TicketAdapter.TicketViewHolder>() {
+    companion object {
+        private const val DEFAULT_TICKET_NAME = "Стандартный"
+    }
+
     class TicketViewHolder(val binding: TicketListItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
     }
@@ -22,10 +26,10 @@ class TicketAdapter(private val tickets: List<Ticket>) :
     override fun onBindViewHolder(holder: TicketViewHolder, position: Int) {
         val item: Ticket = tickets[position]
         if (item.name.isNullOrEmpty())
-            holder.binding.nameSection.isVisible = false
+            holder.binding.ticketName.setText(DEFAULT_TICKET_NAME)
         else
             holder.binding.ticketName.setText(item.name)
-        holder.binding.price.setText(item.getPriceAsString())
+        holder.binding.price.setText("${item.price} ${item.getCurrencyAsString()}")
         holder.binding.etAvailable.isChecked = item.canBeElectronic == true
     }
 

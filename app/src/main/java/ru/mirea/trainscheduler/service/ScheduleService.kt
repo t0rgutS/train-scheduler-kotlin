@@ -5,8 +5,8 @@ import ru.mirea.trainscheduler.model.Location
 import ru.mirea.trainscheduler.model.ScheduleSegment
 import ru.mirea.trainscheduler.model.Station
 
-interface ScheduleService {
-    fun findLocation(searchBy: String): Flow<Location?>
+interface ScheduleService : Service {
+    fun findLocation(searchBy: String): Location?
 
     fun suggestLocations(suggestBy: String): Flow<List<Location>>
 
@@ -22,6 +22,8 @@ interface ScheduleService {
         from: String?,
         to: String?,
     ): Flow<List<Station>>
+
+    fun getLocationCount(): Long
 
     fun updateLocationList()
 }

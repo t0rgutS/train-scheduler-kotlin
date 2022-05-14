@@ -10,7 +10,7 @@ import ru.mirea.trainscheduler.model.Location
 @Dao
 interface LocationDao {
     @Query("SELECT * FROM locations WHERE city = :searchBy")
-    fun findLocation(searchBy: String): Flow<Location?>
+    fun findLocation(searchBy: String): List<Location>
 
     @Query("SELECT * FROM locations WHERE city LIKE :suggestBy || '%'")
     fun suggestLocations(suggestBy: String): Flow<List<Location>>

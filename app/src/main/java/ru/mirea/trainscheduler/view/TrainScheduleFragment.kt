@@ -161,22 +161,24 @@ class TrainScheduleFragment : Fragment() {
 
     private fun getSchedule() {
         if (from != null && to != null && binding.fromDate.text.isNotEmpty()) {
-            navigateToSchedule(from!!.getDefaultCode()!!, to!!.getDefaultCode()!!, binding.fromDate.text.toString())
+            navigateToSchedule(from!!.getDefaultCode()!!,
+                to!!.getDefaultCode()!!,
+                binding.fromDate.text.toString())
         } else if ((from == null || to == null) && binding.from.text.isNotEmpty()
             && binding.to.text.isNotEmpty() && binding.fromDate.text.isNotEmpty()
         ) {
             lifecycleScope.launch(Dispatchers.IO) {
                 if (from == null && binding.from.text.isNotEmpty()) {
-                    from = viewModel.findLocation(binding.from.text.toString()).firstOrNull()
+                    from = viewModel.findLocation(binding.from.text.toString())
                 }
                 if (to == null && binding.to.text.isNotEmpty()) {
-                    to = viewModel.findLocation(binding.to.text.toString()).firstOrNull()
+                    to = viewModel.findLocation(binding.to.text.toString())
                 }
                 requireActivity().runOnUiThread {
                     if (from == null || to == null) {
                         Toast.makeText(requireContext(),
-                            "Выберите точку " +
-                                    "${if (from == null) "отправления" else "прибытия"}!",
+                            "Точка " +
+                                    "${if (from == null) "отправления" else "прибытия"} не найдена!",
                             Toast.LENGTH_LONG)
                             .show()
                     } else navigateToSchedule(from!!.getDefaultCode()!!,
@@ -186,12 +188,12 @@ class TrainScheduleFragment : Fragment() {
             }
         } else {
             if (from == null) {
-                Toast.makeText(requireContext(), "Выберите точку отправления!", Toast.LENGTH_LONG)
+                Toast.makeText(requireContext(), "Точка отправления не найдена!", Toast.LENGTH_LONG)
                     .show()
                 return
             }
             if (to == null) {
-                Toast.makeText(requireContext(), "Выберите точку прибытия!", Toast.LENGTH_LONG)
+                Toast.makeText(requireContext(), "Точка прибытия не найдена!", Toast.LENGTH_LONG)
                     .show()
                 return
             }

@@ -2,6 +2,7 @@ package ru.mirea.trainscheduler.view
 
 import android.os.Bundle
 import android.view.*
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -23,6 +24,7 @@ class DisplayScheduleFragment : Fragment() {
         savedInstanceState: Bundle?,
     ): View {
         binding = DisplayScheduleFragmentBinding.inflate(inflater, container, false)
+        setHasOptionsMenu(true)
         return binding.root
     }
 
@@ -50,9 +52,17 @@ class DisplayScheduleFragment : Fragment() {
         }
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             viewModel.getSchedule().collect { scheduleList ->
-                scheduleList.sortedBy { it.getDeparture() }
-                requireActivity().runOnUiThread {
-                    binding.schedule.adapter = ScheduleAdapter(scheduleList)
+                if (scheduleList.isNotEmpty()) {
+                    scheduleList.sortedBy { it.getDeparture() }
+                    requireActivity().runOnUiThread {
+                        binding.schedule.adapter = ScheduleAdapter(scheduleList)
+                    }
+                } else {
+                    requireActivity().runOnUiThread {
+                        Toast.makeText(requireContext(), "Актуальные рейсы не найдены",
+                            Toast.LENGTH_LONG).show()
+                        findNavController().popBackStack()
+                    }
                 }
             }
         }
