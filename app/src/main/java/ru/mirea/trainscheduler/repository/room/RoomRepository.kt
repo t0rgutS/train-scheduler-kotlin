@@ -1,5 +1,6 @@
 package ru.mirea.trainscheduler.repository.room
 
+import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import ru.mirea.trainscheduler.model.Currency
@@ -20,10 +21,14 @@ class RoomRepository(
     private val exchangeDao: ExchangeDao,
     private val profileDao: ProfileDao,
 ) : LocalScheduleRepository, LocalCurrencyRepository, ProfileRepository {
+    companion object {
+        const val TAG = "Local Repository"
+    }
 
     override fun addLocationList(locationList: List<Location>) {
         executor.execute {
             locationDao.addLocationList(locationList)
+            Log.d(TAG, "Локации успешно внесены в локальную базу данных")
         }
     }
 
@@ -51,12 +56,15 @@ class RoomRepository(
     override fun addCurrencyList(currencyList: List<Currency>) {
         executor.execute {
             exchangeDao.addCurrencyList(currencyList)
+            Log.d(TAG, "В локальную базу данных добавлено ${currencyList.size} кодов валют")
         }
     }
 
     override fun addExchange(exchange: CurrencyExchange) {
         executor.execute {
             exchangeDao.addExchange(exchange)
+            Log.d(TAG, "В локальную базу данных добавлена конвертация из ${exchange.source} " +
+                    "в ${exchange.target}")
         }
     }
 
@@ -85,6 +93,7 @@ class RoomRepository(
     override fun upsertProfile(profile: Profile) {
         executor.execute {
             profileDao.upsertProfile(profile)
+            Log.i(TAG, "Задано новое значение системного профиля ${profile.code}: ${profile.value}")
         }
     }
 

@@ -1,5 +1,6 @@
 package ru.mirea.trainscheduler.viewModel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.Flow
 import ru.mirea.trainscheduler.ServiceLocator
@@ -7,6 +8,10 @@ import ru.mirea.trainscheduler.model.Currency
 import ru.mirea.trainscheduler.model.Profile
 
 class SettingsViewModel : ViewModel() {
+    companion object {
+        const val TAG = "Settings"
+    }
+
     fun getCurrencies(): Flow<List<Currency>> {
         return ServiceLocator.getCurrencyService().getCurrencies()
     }
@@ -28,6 +33,7 @@ class SettingsViewModel : ViewModel() {
 
     fun resyncLocations() {
         ServiceLocator.getScheduleService().updateLocationList()
+        Log.i(TAG, "Запущена ресинхронизация локаций")
     }
 
     fun getExchangeCount(): Long {
@@ -36,6 +42,7 @@ class SettingsViewModel : ViewModel() {
 
     fun clearExchanges() {
         ServiceLocator.getCurrencyService().clearExchanges()
+        Log.i(TAG, "Запущена очистка списка конвертаций валют")
     }
 
 

@@ -1,5 +1,6 @@
 package ru.mirea.trainscheduler.repository.network
 
+import android.util.Log
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,6 +10,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import ru.mirea.trainscheduler.BuildConfig
+import ru.mirea.trainscheduler.issue.RemoteRepositoryException
 import ru.mirea.trainscheduler.model.*
 import ru.mirea.trainscheduler.repository.CurrencyRepository
 import ru.mirea.trainscheduler.repository.RemoteScheduleRepository
@@ -23,6 +25,7 @@ class NetworkRepository : RemoteScheduleRepository, CurrencyRepository {
     companion object {
         private const val yandexApiKey = BuildConfig.YANDEX_SCHEDULE_API_KEY
         private const val exchangeApiKey = BuildConfig.EXCHANGE_RATE_API_KEY
+        const val TAG = "Remote Repository"
     }
 
     override fun getAvailableLocations(): Flow<List<Location>> = callbackFlow {
@@ -31,8 +34,10 @@ class NetworkRepository : RemoteScheduleRepository, CurrencyRepository {
                 call: Call<StationList>,
                 response: Response<StationList>,
             ) {
-                val locationList: MutableList<Location> = mutableListOf()
+                Log.d(TAG, "Запрос на получение локаций завершился с кодом " +
+                        "${response.code()}")
                 if (response.isSuccessful) {
+                    val locationList: MutableList<Location> = mutableListOf()
                     val remoteStations = response.body()
                     remoteStations?.countries?.forEach { country ->
                         country.regions.forEach { region ->
@@ -48,9 +53,13 @@ class NetworkRepository : RemoteScheduleRepository, CurrencyRepository {
                             }
                         }
                     }
+                    trySend(locationList)
+                    close()
+                } else {
+                    val errorMessage = response.errorBody()?.string()
+                    Log.e(TAG, "Ошибка получения списка локаций: $errorMessage")
+                    close(RemoteRepositoryException("getLocations", response.code(), errorMessage))
                 }
-                trySend(locationList)
-                close()
             }
 
             override fun onFailure(call: Call<StationList>, t: Throwable) {
@@ -70,31 +79,45 @@ class NetworkRepository : RemoteScheduleRepository, CurrencyRepository {
         date: String,
         type: String,
     ): Flow<List<ScheduleSegment>> = flow {
+        Log.d(TAG, "Запрос на поиск расписания:" +
+                "\n\tКод локации отправления: $from" +
+                "\n\tКод локации прибытия: $to" +
+                "\n\tДата: $date" +
+                "\n\tТип транспорта: $type")
         var readCount: Int = 0
         var totalCount: Int = 0
         val scheduleSegmentList: MutableList<ScheduleSegment> = mutableListOf()
         do {
-            val trainSchedule = YandexScheduleApiClient.getApi()
-                .getTrainSchedule(yandexApiKey, from, to, date, type, readCount).execute().body()
-            if (trainSchedule != null) {
-                if (trainSchedule.pagination != null) {
-                    totalCount = trainSchedule.pagination!!.total!!
-                    readCount += trainSchedule.intervalSegments.size + trainSchedule.segments.size
-                }
-                trainSchedule.segments.forEach { segment ->
-                    val scheduleSegment = ScheduleSegment()
-                    scheduleSegment.from = segment.from?.let { mapStation(it) }
-                    scheduleSegment.to = segment.to?.let { mapStation(it) }
-                    scheduleSegment.setDeparture(segment.departure)
-                    scheduleSegment.setArrival(segment.arrival)
-                    scheduleSegment.threadUID = segment.thread?.uid
-                    segment.ticketsInfo?.let { ticketsInfo ->
-                        mapTickets(ticketsInfo)?.let {
-                            scheduleSegment.tickets.addAll(it)
-                        }
+            val response = YandexScheduleApiClient.getApi()
+                .getTrainSchedule(yandexApiKey, from, to, date, type, readCount).execute()
+            Log.d(TAG, "Запрос на поиск расписания завершился с кодом ${response.code()}")
+            if (response.isSuccessful) {
+                val trainSchedule = response.body()
+                if (trainSchedule != null) {
+                    if (trainSchedule.pagination != null) {
+                        totalCount = trainSchedule.pagination!!.total!!
+                        readCount += trainSchedule.intervalSegments.size + trainSchedule.segments.size
+                        Log.d(TAG, "Прочитано $readCount записей из $totalCount")
                     }
-                    scheduleSegmentList.add(scheduleSegment)
+                    trainSchedule.segments.forEach { segment ->
+                        val scheduleSegment = ScheduleSegment()
+                        scheduleSegment.from = segment.from?.let { mapStation(it) }
+                        scheduleSegment.to = segment.to?.let { mapStation(it) }
+                        scheduleSegment.setDeparture(segment.departure)
+                        scheduleSegment.setArrival(segment.arrival)
+                        scheduleSegment.threadUID = segment.thread?.uid
+                        segment.ticketsInfo?.let { ticketsInfo ->
+                            mapTickets(ticketsInfo)?.let {
+                                scheduleSegment.tickets.addAll(it)
+                            }
+                        }
+                        scheduleSegmentList.add(scheduleSegment)
+                    }
                 }
+            } else {
+                val errorMessage = response.errorBody()?.string()
+                Log.e(TAG, "Ошибка получения списка локаций: $errorMessage")
+                throw RemoteRepositoryException("getSchedule", response.code(), errorMessage)
             }
         } while (readCount < totalCount)
         emit(scheduleSegmentList)
@@ -105,11 +128,17 @@ class NetworkRepository : RemoteScheduleRepository, CurrencyRepository {
         from: String?,
         to: String?,
     ): Flow<List<Station>> = callbackFlow {
+        Log.d(TAG, "Запрос на поиск станций следования:" +
+                "\n\tКод локации отправления: $from" +
+                "\n\tКод локации прибытия: $to" +
+                "\n\tИдентификатор ветки: $uid")
         val followStationCallback = object : Callback<FollowStations> {
             override fun onResponse(
                 call: Call<FollowStations>,
                 response: Response<FollowStations>,
             ) {
+                Log.d(TAG,
+                    "Запрос на поиск станций следования завершился с кодом ${response.code()}")
                 val followStations: MutableList<Station> = mutableListOf()
                 if (response.isSuccessful) {
                     val receivedStations = response.body()
@@ -122,9 +151,16 @@ class NetworkRepository : RemoteScheduleRepository, CurrencyRepository {
                                 station
                             } else null
                         })
+                    trySend(followStations)
+                    close()
+                } else {
+                    val errorMessage = response.errorBody()?.string()
+                    Log.e(TAG, "Ошибка получения списка локаций: $errorMessage")
+                    close(RemoteRepositoryException("getFollowStations",
+                        response.code(),
+                        errorMessage))
                 }
-                trySend(followStations)
-                close()
+
             }
 
             override fun onFailure(call: Call<FollowStations>, t: Throwable) {
@@ -162,11 +198,14 @@ class NetworkRepository : RemoteScheduleRepository, CurrencyRepository {
     }
 
     override fun getCurrencies(): Flow<List<Currency>> = callbackFlow {
+        Log.d(TAG, "Запрос на получение кодов валют")
         val currencyCallback = object : Callback<CurrencyCodes?> {
             override fun onResponse(
                 call: Call<CurrencyCodes?>,
                 response: Response<CurrencyCodes?>,
             ) {
+                Log.d(TAG,
+                    "Запрос на получение кодов валют завершился со статусом ${response.code()}")
                 val currencyList = mutableListOf<Currency>()
                 if (response.isSuccessful) {
                     val currencyCodes = response.body()
@@ -176,9 +215,13 @@ class NetworkRepository : RemoteScheduleRepository, CurrencyRepository {
                                 Currency(codePair[0])
                             }.collect(Collectors.toList()))
                     }
+                    trySend(currencyList)
+                    close()
+                } else {
+                    val errorMessage = response.errorBody()?.string()
+                    Log.e(TAG, "Ошибка получения списка локаций: $errorMessage")
+                    close(RemoteRepositoryException("getCurrencies", response.code(), errorMessage))
                 }
-                trySend(currencyList)
-                close()
             }
 
             override fun onFailure(call: Call<CurrencyCodes?>, t: Throwable) {
@@ -192,16 +235,26 @@ class NetworkRepository : RemoteScheduleRepository, CurrencyRepository {
 
     override fun getExchange(source: String, target: String): Flow<CurrencyExchange?> =
         callbackFlow {
+            Log.d(TAG, "Запрос на получение данных перевода из $source в $target")
             val exchangeCallback = object : Callback<ConvertPair?> {
                 override fun onResponse(
                     call: Call<ConvertPair?>,
                     response: Response<ConvertPair?>,
                 ) {
-                    if (response.isSuccessful && response.body() != null)
-                        trySend(convertRemoteExchange(response.body()!!))
-                    else trySend(null)
-                    close()
-
+                    Log.d(TAG, "Запрос на получение данных перевода из $source в $target " +
+                            "завершился с кодом ${response.code()}")
+                    if (response.isSuccessful) {
+                        if (response.body() != null)
+                            trySend(convertRemoteExchange(response.body()!!))
+                        else trySend(null)
+                        close()
+                    } else {
+                        val errorMessage = response.errorBody()?.string()
+                        Log.e(TAG, "Ошибка получения списка локаций: $errorMessage")
+                        close(RemoteRepositoryException("getExchange",
+                            response.code(),
+                            errorMessage))
+                    }
                 }
 
                 override fun onFailure(call: Call<ConvertPair?>, t: Throwable) {

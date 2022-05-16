@@ -1,5 +1,6 @@
 package ru.mirea.trainscheduler.service
 
+import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import ru.mirea.trainscheduler.model.Currency
@@ -13,10 +14,15 @@ class CurrencyServiceImpl(
     private val remoteRepository: CurrencyRepository,
     private val localRepository: LocalCurrencyRepository,
 ) : CurrencyService {
+    companion object {
+        const val TAG = "Currency Operations"
+    }
 
     override suspend fun init() {
         if (!localRepository.currenciesExists()) {
             remoteRepository.getCurrencies().collect { remoteCurrencies ->
+                Log.d(TAG, "Выполняется загрузка $remoteCurrencies кодов валют в локальную " +
+                        "базу данных")
                 localRepository.addCurrencyList(remoteCurrencies)
             }
         }
@@ -35,19 +41,34 @@ class CurrencyServiceImpl(
     }
 
     override fun convert(source: String, target: String, value: Double): Flow<Double?> = flow {
+        Log.d(TAG, "Перевод $value $source в $target")
         localRepository.getExchange(source, target).collect { localExchange ->
+            if (localExchange != null)
+                Log.d(TAG, "Данные перевода из $source в $target найдены в локальной базе")
+            else Log.d(TAG, "Данные перевода из $source в $target не найдены в локальной базе " +
+                    "данных.")
             val nextUpdate = if (localExchange?.nextUpdateOn != null)
                 Instant.ofEpochSecond(localExchange.nextUpdateOn!!)
                     .atZone(ZoneId.systemDefault()).toLocalDate() else null
             if (nextUpdate != null && nextUpdate.isAfter(LocalDate.now()) && localExchange?.rate != null) {
-                emit(value * localExchange.rate!!)
-            } else remoteRepository.getExchange(source, target)
-                .collect { remoteExchange ->
-                    if (remoteExchange != null) {
-                        localRepository.addExchange(remoteExchange)
-                        emit(value * remoteExchange.rate!!)
-                    } else emit(null)
-                }
+                val result = value * localExchange.rate!!
+                Log.d(TAG, "$value $source = $result $target")
+                emit(result)
+            } else {
+                if (localExchange == null)
+                    Log.d(TAG,
+                        "Данные перевода из $source в $target устарели, требуется обновление")
+                remoteRepository.getExchange(source, target)
+                    .collect { remoteExchange ->
+                        Log.d(TAG, "Получены данные о переводе из $source в $target")
+                        if (remoteExchange != null) {
+                            localRepository.addExchange(remoteExchange)
+                            val result = value * remoteExchange.rate!!
+                            Log.d(TAG, "$value $source = $result $target")
+                            emit(result)
+                        } else emit(null)
+                    }
+            }
         }
     }
 }

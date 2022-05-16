@@ -1,5 +1,6 @@
 package ru.mirea.trainscheduler.service
 
+import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -13,11 +14,18 @@ class ScheduleServiceImpl(
     private val remoteRepository: RemoteScheduleRepository,
     private val localRepository: LocalScheduleRepository,
 ) : ScheduleService {
+    companion object {
+        const val TAG = "Train Schedule"
+    }
+
     private val cachedLocations: MutableList<Location> = mutableListOf()
 
     override suspend fun init() {
         if (!localRepository.locationsExists()) {
             remoteRepository.getAvailableLocations().collect { remoteLocations ->
+                Log.d(TAG,
+                    "Выполняется загрузка ${remoteLocations.size} в локальную базу данных. " +
+                            "Для оперативного доступа локации сохраняются во временный кэш")
                 cachedLocations.addAll(remoteLocations)
                 localRepository.addLocationList(remoteLocations)
             }
@@ -25,11 +33,17 @@ class ScheduleServiceImpl(
     }
 
     override fun suggestLocations(suggestBy: String): Flow<List<Location>> {
+        Log.d(TAG, "Поиск локаций по подсказке '$suggestBy'")
         return localRepository.suggestLocations(suggestBy).map { locations ->
+            Log.d(TAG,
+                "В локальной базе данных по подсказке $suggestBy найдено ${locations.size} " +
+                        "локаций")
             if (cachedLocations.isNotEmpty()) {
-                if (locations.isEmpty())
-                    cachedLocations
-                else {
+                if (locations.isEmpty()) {
+                    Log.d(TAG, "Выполняется поиск во временном кэше по подсказке $suggestBy")
+                    cachedLocations.filter { it.city?.startsWith(suggestBy) == true }
+                } else {
+                    Log.d(TAG, "Выполняется очистка найденных локаций из временного кэша")
                     cachedLocations.removeAll(locations)
                     locations
                 }
@@ -38,7 +52,9 @@ class ScheduleServiceImpl(
     }
 
     override fun findLocation(searchBy: String): Location? {
+        Log.d(TAG, "Поиск локации '$searchBy'")
         val location = localRepository.findLocation(searchBy)
+        Log.d(TAG, "Локация '$searchBy' ${if (location == null) "не " else ""} найдена")
         if (location != null && cachedLocations.contains(location)) {
             cachedLocations.remove(location)
             return location
@@ -53,6 +69,11 @@ class ScheduleServiceImpl(
         date: String,
         type: String,
     ): Flow<List<ScheduleSegment>> {
+        Log.d(TAG, "Выполняется поиск расписания:" +
+                "\n\tКод локации отправления: $from" +
+                "\n\tКод локации прибытия: $to" +
+                "\n\tДата: $date" +
+                "\n\tТип транспорта: $type")
         return remoteRepository.getSchedule(from, to, date, type)
     }
 
@@ -61,6 +82,10 @@ class ScheduleServiceImpl(
         from: String?,
         to: String?,
     ): Flow<List<Station>> {
+        Log.d(TAG, "Выполняется поиск станций следования:" +
+                "\n\tКод локации отправления: $from" +
+                "\n\tКод локации прибытия: $to" +
+                "\n\tИдентификатор ветки: $uid")
         return remoteRepository.getFollowStations(uid, from, to)
     }
 
@@ -72,6 +97,13 @@ class ScheduleServiceImpl(
         flow<Unit> {
             remoteRepository.getAvailableLocations().collect { remoteLocations ->
                 if (remoteLocations.isNotEmpty()) {
+                    Log.d(TAG,
+                        "Выполняется ресинхронизация ${remoteLocations.size} локаций. " +
+                                "Для оперативного доступа локации сохраняются во временный кэш")
+                    remoteLocations.forEach { location ->
+                        if (!cachedLocations.contains(location))
+                            cachedLocations.add(location)
+                    }
                     localRepository.addLocationList(remoteLocations)
                 }
             }
