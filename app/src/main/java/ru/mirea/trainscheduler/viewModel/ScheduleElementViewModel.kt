@@ -11,7 +11,7 @@ import ru.mirea.trainscheduler.ServiceLocator
 import ru.mirea.trainscheduler.model.ScheduleSegment
 import ru.mirea.trainscheduler.model.Station
 import ru.mirea.trainscheduler.model.Ticket
-import ru.mirea.trainscheduler.service.ProfileService
+import ru.mirea.trainscheduler.service.ProfileDataService
 
 class ScheduleElementViewModel : ViewModel() {
     private var scheduleSegment: ScheduleSegment? = null
@@ -30,7 +30,7 @@ class ScheduleElementViewModel : ViewModel() {
     fun getTickets(): Flow<List<Ticket>> {
         return flow {
             val defaultCurrency = ServiceLocator.getProfileService()
-                .getProfileByCode(ProfileService.DEFAULT_CURRENCY_CODE).firstOrNull()?.value
+                .getProfileByCode(ProfileDataService.DEFAULT_CURRENCY_CODE).firstOrNull()?.value
             val tickets = scheduleSegment!!.tickets
             tickets.forEach { ticket ->
                 if (ticket.displayCurrency != defaultCurrency) {

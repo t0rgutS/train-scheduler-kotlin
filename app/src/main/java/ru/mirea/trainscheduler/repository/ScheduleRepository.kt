@@ -1,3 +1,0 @@
-package ru.mirea.trainscheduler.repository
-
-interface ScheduleRepository

@@ -134,6 +134,23 @@ class TrainScheduleFragment : Fragment() {
             to = adapterView?.getItemAtPosition(position) as Location
         }
 
+        binding.switchFromTo.setOnClickListener {
+            val tempText = binding.from.text
+            binding.from.text = binding.to.text
+            binding.to.text = tempText
+            val tempLocation = from
+            from?.id = to?.id
+            from?.city = to?.city
+            from?.country = to?.country
+            from?.region = to?.region
+            from?.codes = to?.codes
+            to?.id = tempLocation?.id
+            to?.city = tempLocation?.city
+            to?.country = tempLocation?.country
+            to?.region = tempLocation?.region
+            to?.codes = tempLocation?.codes
+        }
+
         binding.fromDate.setOnTouchListener { view, motionEvent ->
             if (motionEvent.action == MotionEvent.ACTION_DOWN) {
                 val datePickerDialog = DatePickerDialog(requireContext())
@@ -153,8 +170,7 @@ class TrainScheduleFragment : Fragment() {
     private fun defineTransportType(tabPosition: Int): String {
         when (tabPosition) {
             0 -> return "train"
-            1 -> return "suburban"
-            2 -> return "bus"
+            1 -> return "bus"
         }
         return ""
     }

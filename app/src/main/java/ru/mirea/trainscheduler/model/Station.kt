@@ -9,7 +9,6 @@ class Station {
         const val INITIAL_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss"
     }
 
-    var id: Long? = null
     var codes: Map<String, String>? = HashMap()
     var transportType: String? = null
     var stationType: String? = null

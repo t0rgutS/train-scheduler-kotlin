@@ -4,16 +4,16 @@ import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import ru.mirea.trainscheduler.model.Currency
-import ru.mirea.trainscheduler.repository.CurrencyRepository
+import ru.mirea.trainscheduler.repository.RemoteCurrencyRepository
 import ru.mirea.trainscheduler.repository.LocalCurrencyRepository
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 
-class CurrencyServiceImpl(
-    private val remoteRepository: CurrencyRepository,
+class CurrencyDataServiceImpl(
+    private val remoteRepository: RemoteCurrencyRepository,
     private val localRepository: LocalCurrencyRepository,
-) : CurrencyService {
+) : CurrencyDataService {
     companion object {
         const val TAG = "Currency Operations"
     }

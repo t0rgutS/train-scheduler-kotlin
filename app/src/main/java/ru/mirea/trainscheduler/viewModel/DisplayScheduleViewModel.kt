@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.onEach
 import ru.mirea.trainscheduler.ServiceLocator
 import ru.mirea.trainscheduler.model.ScheduleSegment
-import ru.mirea.trainscheduler.service.ProfileService
+import ru.mirea.trainscheduler.service.ProfileDataService
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -41,7 +41,7 @@ class DisplayScheduleViewModel : ViewModel() {
             .getSchedule(fromCode!!, toCode!!, date!!, transportType!!)
             .onEach { segments ->
                 val defaultCurrency = ServiceLocator.getProfileService()
-                    .getProfileByCode(ProfileService.DEFAULT_CURRENCY_CODE).firstOrNull()?.value
+                    .getProfileByCode(ProfileDataService.DEFAULT_CURRENCY_CODE).firstOrNull()?.value
                 segments.mapNotNull { segment ->
                     val departureDateTime = LocalDateTime.parse(segment.getDeparture(),
                         DateTimeFormatter.ofPattern(ScheduleSegment.TARGET_DATE_FORMAT))

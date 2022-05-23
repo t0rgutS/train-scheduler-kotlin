@@ -1,10 +1,9 @@
 package ru.mirea.trainscheduler.repository
 
-import kotlinx.coroutines.flow.Flow
 import ru.mirea.trainscheduler.model.Currency
 import ru.mirea.trainscheduler.model.CurrencyExchange
 
-interface LocalCurrencyRepository : CurrencyRepository {
+interface LocalCurrencyRepository : RemoteCurrencyRepository {
     fun currenciesExists(): Boolean
 
     fun addCurrencyList(currencyList: List<Currency>)

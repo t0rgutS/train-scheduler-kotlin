@@ -1,5 +1,5 @@
 package ru.mirea.trainscheduler.service
 
-interface Service {
+interface DataService {
     suspend fun init()
 }

@@ -3,7 +3,7 @@ package ru.mirea.trainscheduler.service
 import kotlinx.coroutines.flow.Flow
 import ru.mirea.trainscheduler.model.Profile
 
-interface ProfileService : Service {
+interface ProfileDataService : DataService {
     companion object {
         const val DEFAULT_CURRENCY_CODE = "default_currency"
         const val DEFAULT_CURRENCY_VALUE = "RUB"

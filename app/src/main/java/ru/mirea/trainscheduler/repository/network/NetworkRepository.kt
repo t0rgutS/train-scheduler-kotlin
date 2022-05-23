@@ -3,7 +3,6 @@ package ru.mirea.trainscheduler.repository.network
 import android.util.Log
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
 import retrofit2.Call
@@ -12,16 +11,12 @@ import retrofit2.Response
 import ru.mirea.trainscheduler.BuildConfig
 import ru.mirea.trainscheduler.issue.RemoteRepositoryException
 import ru.mirea.trainscheduler.model.*
-import ru.mirea.trainscheduler.repository.CurrencyRepository
+import ru.mirea.trainscheduler.repository.RemoteCurrencyRepository
 import ru.mirea.trainscheduler.repository.RemoteScheduleRepository
-import ru.mirea.trainscheduler.repository.ScheduleRepository
 import ru.mirea.trainscheduler.repository.network.model.*
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.stream.Collectors
 
-class NetworkRepository : RemoteScheduleRepository, CurrencyRepository {
+class NetworkRepository : RemoteScheduleRepository, RemoteCurrencyRepository {
     companion object {
         private const val yandexApiKey = BuildConfig.YANDEX_SCHEDULE_API_KEY
         private const val exchangeApiKey = BuildConfig.EXCHANGE_RATE_API_KEY

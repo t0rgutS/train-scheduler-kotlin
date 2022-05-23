@@ -6,12 +6,11 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import ru.mirea.trainscheduler.model.Profile
 import ru.mirea.trainscheduler.repository.ProfileRepository
-import ru.mirea.trainscheduler.service.ProfileService.Companion.DEFAULT_CURRENCY_CODE
-import ru.mirea.trainscheduler.service.ProfileService.Companion.DEFAULT_CURRENCY_VALUE
-import ru.mirea.trainscheduler.service.ProfileService.Companion.THEME_CODE
-import ru.mirea.trainscheduler.viewModel.SettingsViewModel
+import ru.mirea.trainscheduler.service.ProfileDataService.Companion.DEFAULT_CURRENCY_CODE
+import ru.mirea.trainscheduler.service.ProfileDataService.Companion.DEFAULT_CURRENCY_VALUE
+import ru.mirea.trainscheduler.service.ProfileDataService.Companion.THEME_CODE
 
-class ProfileServiceImpl(private val profileRepository: ProfileRepository) : ProfileService {
+class ProfileDataServiceImpl(private val profileRepository: ProfileRepository) : ProfileDataService {
     companion object {
         const val TAG = "Settings"
     }

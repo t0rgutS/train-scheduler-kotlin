@@ -3,7 +3,7 @@ package ru.mirea.trainscheduler.service
 import kotlinx.coroutines.flow.Flow
 import ru.mirea.trainscheduler.model.Currency
 
-interface CurrencyService: Service {
+interface CurrencyDataService: DataService {
     fun getCurrencies(): Flow<List<Currency>>
 
     fun getExchangeCount(): Long

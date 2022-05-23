@@ -12,15 +12,13 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.launch
 import ru.mirea.trainscheduler.databinding.SettingsFragmentBinding
 import ru.mirea.trainscheduler.issue.TrainSchedulerException
 import ru.mirea.trainscheduler.model.Currency
 import ru.mirea.trainscheduler.model.Profile
-import ru.mirea.trainscheduler.service.ProfileService
+import ru.mirea.trainscheduler.service.ProfileDataService
 import ru.mirea.trainscheduler.viewModel.SettingsViewModel
 
 class SettingsFragment : Fragment() {
@@ -40,7 +38,7 @@ class SettingsFragment : Fragment() {
         viewModel = ViewModelProvider(this)[SettingsViewModel::class.java]
         lifecycleScope.launch(Dispatchers.IO) {
             viewModel.getCurrencies().collect { currencies ->
-                viewModel.getProfile(ProfileService.DEFAULT_CURRENCY_CODE)
+                viewModel.getProfile(ProfileDataService.DEFAULT_CURRENCY_CODE)
                     .collect { defaultCurrencyProfile ->
                         requireActivity().runOnUiThread {
                             binding.currency.adapter = ArrayAdapter<Currency>(requireContext(),
@@ -62,7 +60,7 @@ class SettingsFragment : Fragment() {
                                         try {
                                             currencies[position].code?.let { it1 ->
                                                 if (it1 != defaultCurrency?.code)
-                                                    viewModel.saveProfile(ProfileService.DEFAULT_CURRENCY_CODE,
+                                                    viewModel.saveProfile(ProfileDataService.DEFAULT_CURRENCY_CODE,
                                                         it1)
                                             }
                                         } catch (e: TrainSchedulerException) {
@@ -80,7 +78,7 @@ class SettingsFragment : Fragment() {
                     }
             }
 
-            viewModel.getProfile(ProfileService.THEME_CODE).collect { profile ->
+            viewModel.getProfile(ProfileDataService.THEME_CODE).collect { profile ->
                 requireActivity().runOnUiThread {
                     binding.darkMode.isChecked =
                         profile?.value == Profile.ThemeProfileValues.DARK.name
@@ -90,7 +88,7 @@ class SettingsFragment : Fragment() {
                         else
                             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
                         (requireActivity() as AppCompatActivity).delegate.applyDayNight()
-                        viewModel.saveProfile(ProfileService.THEME_CODE, if (isChecked)
+                        viewModel.saveProfile(ProfileDataService.THEME_CODE, if (isChecked)
                             Profile.ThemeProfileValues.DARK.name
                         else Profile.ThemeProfileValues.DEFAULT.name)
                     }

@@ -5,7 +5,7 @@ import ru.mirea.trainscheduler.model.Location
 import ru.mirea.trainscheduler.model.ScheduleSegment
 import ru.mirea.trainscheduler.model.Station
 
-interface ScheduleService : Service {
+interface ScheduleDataService : DataService {
     fun findLocation(searchBy: String): Location?
 
     fun suggestLocations(suggestBy: String): Flow<List<Location>>

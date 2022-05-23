@@ -10,10 +10,10 @@ import ru.mirea.trainscheduler.model.Station
 import ru.mirea.trainscheduler.repository.LocalScheduleRepository
 import ru.mirea.trainscheduler.repository.RemoteScheduleRepository
 
-class ScheduleServiceImpl(
+class ScheduleDataServiceImpl(
     private val remoteRepository: RemoteScheduleRepository,
     private val localRepository: LocalScheduleRepository,
-) : ScheduleService {
+) : ScheduleDataService {
     companion object {
         const val TAG = "Train Schedule"
     }

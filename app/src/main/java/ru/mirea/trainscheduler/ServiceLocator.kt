@@ -11,9 +11,9 @@ import ru.mirea.trainscheduler.repository.room.TrainScheduleDatabase
 import ru.mirea.trainscheduler.service.*
 
 object ServiceLocator {
-    private lateinit var scheduleService: ScheduleService
-    private lateinit var currencyService: CurrencyService
-    private lateinit var profileService: ProfileService
+    private lateinit var scheduleService: ScheduleDataService
+    private lateinit var currencyService: CurrencyDataService
+    private lateinit var profileService: ProfileDataService
     private lateinit var gson: Gson
 
     fun init(context: Context, scope: CoroutineScope) {
@@ -22,9 +22,9 @@ object ServiceLocator {
         val roomDatabase = TrainScheduleDatabase.getDatabase(context)
         val roomRepository = RoomRepository(roomDatabase.executor, roomDatabase.locationDao(),
             roomDatabase.exchangeDao(), roomDatabase.profileDao())
-        scheduleService = ScheduleServiceImpl(networkRepository, roomRepository)
-        currencyService = CurrencyServiceImpl(networkRepository, roomRepository)
-        profileService = ProfileServiceImpl(roomRepository)
+        scheduleService = ScheduleDataServiceImpl(networkRepository, roomRepository)
+        currencyService = CurrencyDataServiceImpl(networkRepository, roomRepository)
+        profileService = ProfileDataServiceImpl(roomRepository)
         scope.launch(Dispatchers.IO) {
             scheduleService.init()
             currencyService.init()
@@ -32,15 +32,15 @@ object ServiceLocator {
         }
     }
 
-    fun getScheduleService(): ScheduleService {
+    fun getScheduleService(): ScheduleDataService {
         return scheduleService
     }
 
-    fun getCurrencyService(): CurrencyService {
+    fun getCurrencyService(): CurrencyDataService {
         return currencyService
     }
 
-    fun getProfileService(): ProfileService {
+    fun getProfileService(): ProfileDataService {
         return profileService
     }
 
