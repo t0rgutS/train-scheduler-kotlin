@@ -6,6 +6,8 @@ import ru.mirea.trainscheduler.model.Location
 interface LocalScheduleRepository {
     fun addLocationList(locationList: List<Location>)
 
+    fun addLocation(location: Location)
+
     fun getLocationCount(): Long
 
     fun locationsExists(): Boolean

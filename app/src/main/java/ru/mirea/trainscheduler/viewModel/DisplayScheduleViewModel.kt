@@ -1,17 +1,20 @@
 package ru.mirea.trainscheduler.viewModel
 
+import android.app.Application
+import android.content.Context
 import android.os.Bundle
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import ru.mirea.trainscheduler.ServiceLocator
+import ru.mirea.trainscheduler.TrainSchedulerConstants
 import ru.mirea.trainscheduler.model.ScheduleSegment
-import ru.mirea.trainscheduler.service.ProfileDataService
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-class DisplayScheduleViewModel : ViewModel() {
+class DisplayScheduleViewModel(application: Application) : AndroidViewModel(application) {
     companion object {
         const val FROM_CODE_ARG = "fromCode"
         const val TO_CODE_ARG = "toCode"
@@ -39,9 +42,10 @@ class DisplayScheduleViewModel : ViewModel() {
     fun getSchedule(): Flow<List<ScheduleSegment>> {
         return ServiceLocator.getScheduleService()
             .getSchedule(fromCode!!, toCode!!, date!!, transportType!!)
-            .onEach { segments ->
-                val defaultCurrency = ServiceLocator.getProfileService()
-                    .getProfileByCode(ProfileDataService.DEFAULT_CURRENCY_CODE).firstOrNull()?.value
+            .map { segments ->
+                val defaultCurrency = getApplication<Application>()
+                    .getSharedPreferences(TrainSchedulerConstants.SHARED_PREF_NAME, Context.MODE_PRIVATE)
+                    .getString(TrainSchedulerConstants.DEFAULT_CURRENCY_PREF, null)
                 segments.mapNotNull { segment ->
                     val departureDateTime = LocalDateTime.parse(segment.getDeparture(),
                         DateTimeFormatter.ofPattern(ScheduleSegment.TARGET_DATE_FORMAT))

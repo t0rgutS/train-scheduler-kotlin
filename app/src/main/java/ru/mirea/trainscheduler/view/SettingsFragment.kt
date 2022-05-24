@@ -1,5 +1,7 @@
 package ru.mirea.trainscheduler.view
 
+import android.app.AlertDialog
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -7,19 +9,17 @@ import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import ru.mirea.trainscheduler.TrainSchedulerConstants
 import ru.mirea.trainscheduler.databinding.SettingsFragmentBinding
 import ru.mirea.trainscheduler.issue.TrainSchedulerException
 import ru.mirea.trainscheduler.model.Currency
-import ru.mirea.trainscheduler.model.Profile
-import ru.mirea.trainscheduler.service.ProfileDataService
 import ru.mirea.trainscheduler.viewModel.SettingsViewModel
+import java.lang.Exception
 
 class SettingsFragment : Fragment() {
     private lateinit var binding: SettingsFragmentBinding
@@ -37,15 +37,18 @@ class SettingsFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProvider(this)[SettingsViewModel::class.java]
         lifecycleScope.launch(Dispatchers.IO) {
-            viewModel.getCurrencies().collect { currencies ->
-                viewModel.getProfile(ProfileDataService.DEFAULT_CURRENCY_CODE)
-                    .collect { defaultCurrencyProfile ->
-                        requireActivity().runOnUiThread {
+            try {
+                viewModel.getCurrencies().collect { currencies ->
+                    requireActivity().runOnUiThread {
+                        try {
                             binding.currency.adapter = ArrayAdapter<Currency>(requireContext(),
                                 android.R.layout.simple_spinner_item,
                                 currencies)
                             val defaultCurrency = currencies.find {
-                                it.code == defaultCurrencyProfile?.value
+                                it.code == requireActivity().getSharedPreferences(
+                                    TrainSchedulerConstants.SHARED_PREF_NAME,
+                                    Context.MODE_PRIVATE)
+                                    .getString(TrainSchedulerConstants.DEFAULT_CURRENCY_PREF, null)
                             }
                             binding.currency.setSelection(if (defaultCurrency != null) currencies.indexOf(
                                 defaultCurrency) else 0)
@@ -59,50 +62,48 @@ class SettingsFragment : Fragment() {
                                     ) {
                                         try {
                                             currencies[position].code?.let { it1 ->
-                                                if (it1 != defaultCurrency?.code)
-                                                    viewModel.saveProfile(ProfileDataService.DEFAULT_CURRENCY_CODE,
-                                                        it1)
+                                                requireActivity()
+                                                    .getSharedPreferences(TrainSchedulerConstants.SHARED_PREF_NAME,
+                                                        Context.MODE_PRIVATE).edit()
+                                                    .putString(TrainSchedulerConstants.DEFAULT_CURRENCY_PREF,
+                                                        it1).apply()
                                             }
-                                        } catch (e: TrainSchedulerException) {
-                                            Toast.makeText(requireContext(),
-                                                e.message,
-                                                Toast.LENGTH_LONG)
-                                                .show()
+                                        } catch (e: Exception) {
+                                            showErrorDialog(e)
                                         }
                                     }
 
                                     override fun onNothingSelected(p0: AdapterView<*>?) {
                                     }
                                 }
+                        } catch (e: Exception) {
+                            showErrorDialog(e)
                         }
                     }
-            }
-
-            viewModel.getProfile(ProfileDataService.THEME_CODE).collect { profile ->
-                requireActivity().runOnUiThread {
-                    binding.darkMode.isChecked =
-                        profile?.value == Profile.ThemeProfileValues.DARK.name
-                    binding.darkMode.setOnCheckedChangeListener { button, isChecked ->
-                        if (isChecked)
-                            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-                        else
-                            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-                        (requireActivity() as AppCompatActivity).delegate.applyDayNight()
-                        viewModel.saveProfile(ProfileDataService.THEME_CODE, if (isChecked)
-                            Profile.ThemeProfileValues.DARK.name
-                        else Profile.ThemeProfileValues.DEFAULT.name)
-                    }
                 }
+            } catch (e: Exception) {
+                requireActivity().runOnUiThread { showErrorDialog(e) }
             }
         }
         binding.locationCount.setText(viewModel.getLocationCount().toString())
         binding.resyncLocations.setOnClickListener {
             viewModel.resyncLocations()
         }
+        binding.currencyCount.setText(viewModel.getCurrencyCount().toString())
+        binding.resyncCurrencies.setOnClickListener {
+            viewModel.resyncCurrencies()
+        }
         binding.exchangeCount.setText(viewModel.getExchangeCount().toString())
         binding.clearExchanges.setOnClickListener {
             viewModel.clearExchanges()
         }
+    }
+
+    private fun showErrorDialog(t: Throwable) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Ошибка")
+            .setMessage("Произошла ошибка: ${t.message}")
+            .setPositiveButton("OK") { dialog, id -> dialog.cancel() }.show()
     }
 
 }

@@ -103,8 +103,8 @@ class ScheduleDataServiceImpl(
                     remoteLocations.forEach { location ->
                         if (!cachedLocations.contains(location))
                             cachedLocations.add(location)
+                        localRepository.addLocation(location)
                     }
-                    localRepository.addLocationList(remoteLocations)
                 }
             }
         }

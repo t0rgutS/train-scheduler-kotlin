@@ -1,26 +1,24 @@
 package ru.mirea.trainscheduler.viewModel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import android.content.Context
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import ru.mirea.trainscheduler.ServiceLocator
+import ru.mirea.trainscheduler.TrainSchedulerConstants
 import ru.mirea.trainscheduler.model.ScheduleSegment
 import ru.mirea.trainscheduler.model.Station
 import ru.mirea.trainscheduler.model.Ticket
-import ru.mirea.trainscheduler.service.ProfileDataService
 
-class ScheduleElementViewModel : ViewModel() {
+class ScheduleElementViewModel(application: Application) : AndroidViewModel(application) {
     private var scheduleSegment: ScheduleSegment? = null
-    private lateinit var initialCurrencies: List<String>
 
     fun setScheduleSegment(scheduleSegment: ScheduleSegment) {
         this.scheduleSegment = scheduleSegment
-        this.initialCurrencies = scheduleSegment.tickets.map(Ticket::currency)
-            .toList().filterNotNull().distinct()
     }
 
     fun getScheduleSegment(): ScheduleSegment? {
@@ -29,8 +27,9 @@ class ScheduleElementViewModel : ViewModel() {
 
     fun getTickets(): Flow<List<Ticket>> {
         return flow {
-            val defaultCurrency = ServiceLocator.getProfileService()
-                .getProfileByCode(ProfileDataService.DEFAULT_CURRENCY_CODE).firstOrNull()?.value
+            val defaultCurrency = getApplication<Application>()
+                .getSharedPreferences(TrainSchedulerConstants.SHARED_PREF_NAME, Context.MODE_PRIVATE)
+                .getString(TrainSchedulerConstants.DEFAULT_CURRENCY_PREF, null)
             val tickets = scheduleSegment!!.tickets
             tickets.forEach { ticket ->
                 if (ticket.displayCurrency != defaultCurrency) {

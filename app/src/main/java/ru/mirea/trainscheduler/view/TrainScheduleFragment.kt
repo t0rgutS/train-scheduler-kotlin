@@ -1,26 +1,23 @@
 package ru.mirea.trainscheduler.view
 
+import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.*
 import android.widget.Toast
-import androidx.core.view.children
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.tabs.TabLayout
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import ru.mirea.trainscheduler.R
 import ru.mirea.trainscheduler.databinding.TrainScheduleFragmentBinding
 import ru.mirea.trainscheduler.model.Location
 import ru.mirea.trainscheduler.view.adapter.LocationAutoCompleteAdapter
-import ru.mirea.trainscheduler.view.adapter.ScheduleAdapter
 import ru.mirea.trainscheduler.viewModel.DisplayScheduleViewModel
 import ru.mirea.trainscheduler.viewModel.TrainScheduleViewModel
 
@@ -112,14 +109,20 @@ class TrainScheduleFragment : Fragment() {
                     val searchBy: String = if (s[0].isUpperCase()) s.toString() else
                         s[0].uppercase() + s.substring(1)
                     lifecycleScope.launch(Dispatchers.IO) {
-                        viewModel.suggestLocations(searchBy).collect { suggested ->
+                        try {
+                            viewModel.suggestLocations(searchBy).collect { suggested ->
+                                requireActivity().runOnUiThread {
+                                    val stationListAdapter = LocationAutoCompleteAdapter(
+                                        requireContext(),
+                                        suggested
+                                    )
+                                    binding.to.setAdapter(stationListAdapter)
+                                    stationListAdapter.notifyDataSetChanged()
+                                }
+                            }
+                        } catch (e: Exception) {
                             requireActivity().runOnUiThread {
-                                val stationListAdapter = LocationAutoCompleteAdapter(
-                                    requireContext(),
-                                    suggested
-                                )
-                                binding.to.setAdapter(stationListAdapter)
-                                stationListAdapter.notifyDataSetChanged()
+                                showErrorDialog(e)
                             }
                         }
                     }
@@ -176,50 +179,64 @@ class TrainScheduleFragment : Fragment() {
     }
 
     private fun getSchedule() {
-        if (from != null && to != null && binding.fromDate.text.isNotEmpty()) {
-            navigateToSchedule(from!!.getDefaultCode()!!,
-                to!!.getDefaultCode()!!,
-                binding.fromDate.text.toString())
-        } else if ((from == null || to == null) && binding.from.text.isNotEmpty()
-            && binding.to.text.isNotEmpty() && binding.fromDate.text.isNotEmpty()
-        ) {
-            lifecycleScope.launch(Dispatchers.IO) {
-                if (from == null && binding.from.text.isNotEmpty()) {
-                    from = viewModel.findLocation(binding.from.text.toString())
+        try {
+            if (from != null && to != null && binding.fromDate.text.isNotEmpty()) {
+                navigateToSchedule(from!!.getDefaultCode()!!,
+                    to!!.getDefaultCode()!!,
+                    binding.fromDate.text.toString())
+            } else if ((from == null || to == null) && binding.from.text.isNotEmpty()
+                && binding.to.text.isNotEmpty() && binding.fromDate.text.isNotEmpty()
+            ) {
+                lifecycleScope.launch(Dispatchers.IO) {
+                    try {
+                        if (from == null && binding.from.text.isNotEmpty()) {
+                            from = viewModel.findLocation(binding.from.text.toString())
+                        }
+                        if (to == null && binding.to.text.isNotEmpty()) {
+                            to = viewModel.findLocation(binding.to.text.toString())
+                        }
+                        requireActivity().runOnUiThread {
+                            if (from == null || to == null) {
+                                Toast.makeText(requireContext(),
+                                    "Точка " +
+                                            "${if (from == null) "отправления" else "прибытия"} не найдена!",
+                                    Toast.LENGTH_LONG)
+                                    .show()
+                            } else navigateToSchedule(from!!.getDefaultCode()!!,
+                                to!!.getDefaultCode()!!,
+                                binding.fromDate.text.toString())
+                        }
+                    } catch (e: Exception) {
+                        requireActivity().runOnUiThread {
+                            showErrorDialog(e)
+                        }
+                    }
                 }
-                if (to == null && binding.to.text.isNotEmpty()) {
-                    to = viewModel.findLocation(binding.to.text.toString())
+            } else {
+                if (from == null) {
+                    Toast.makeText(requireContext(),
+                        "Точка отправления не найдена!",
+                        Toast.LENGTH_LONG)
+                        .show()
+                    return
                 }
-                requireActivity().runOnUiThread {
-                    if (from == null || to == null) {
-                        Toast.makeText(requireContext(),
-                            "Точка " +
-                                    "${if (from == null) "отправления" else "прибытия"} не найдена!",
-                            Toast.LENGTH_LONG)
-                            .show()
-                    } else navigateToSchedule(from!!.getDefaultCode()!!,
-                        to!!.getDefaultCode()!!,
-                        binding.fromDate.text.toString())
+                if (to == null) {
+                    Toast.makeText(requireContext(),
+                        "Точка прибытия не найдена!",
+                        Toast.LENGTH_LONG)
+                        .show()
+                    return
+                }
+                if (binding.fromDate.text.isEmpty()) {
+                    Toast.makeText(
+                        requireContext(), "Выберите дату!",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    return
                 }
             }
-        } else {
-            if (from == null) {
-                Toast.makeText(requireContext(), "Точка отправления не найдена!", Toast.LENGTH_LONG)
-                    .show()
-                return
-            }
-            if (to == null) {
-                Toast.makeText(requireContext(), "Точка прибытия не найдена!", Toast.LENGTH_LONG)
-                    .show()
-                return
-            }
-            if (binding.fromDate.text.isEmpty()) {
-                Toast.makeText(
-                    requireContext(), "Выберите дату!",
-                    Toast.LENGTH_LONG
-                ).show()
-                return
-            }
+        } catch (e: Exception) {
+            showErrorDialog(e)
         }
     }
 
@@ -233,5 +250,12 @@ class TrainScheduleFragment : Fragment() {
                 it.putString(DisplayScheduleViewModel.TRANSPORT_TYPE_ARG,
                     defineTransportType(selectedTabPos))
             })
+    }
+
+    private fun showErrorDialog(t: Throwable) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Ошибка")
+            .setMessage("Произошла ошибка: ${t.message}")
+            .setPositiveButton("OK") { dialog, id -> dialog.cancel() }.show()
     }
 }

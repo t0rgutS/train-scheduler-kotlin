@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.Flow
 import ru.mirea.trainscheduler.ServiceLocator
 import ru.mirea.trainscheduler.model.Currency
-import ru.mirea.trainscheduler.model.Profile
 
 class SettingsViewModel : ViewModel() {
     companion object {
@@ -16,19 +15,17 @@ class SettingsViewModel : ViewModel() {
         return ServiceLocator.getCurrencyService().getCurrencies()
     }
 
-    fun getProfile(code: String): Flow<Profile?> {
-        return ServiceLocator.getProfileService().getProfileByCode(code)
-    }
-
-    fun saveProfile(code: String, value: String) {
-        val profile = Profile()
-        profile.code = code
-        profile.value = value
-        ServiceLocator.getProfileService().upsertProfile(profile)
-    }
-
     fun getLocationCount(): Long {
         return ServiceLocator.getScheduleService().getLocationCount()
+    }
+
+    fun getCurrencyCount(): Long {
+        return ServiceLocator.getCurrencyService().getCurrencyCount()
+    }
+
+    fun resyncCurrencies() {
+        ServiceLocator.getCurrencyService().updateCurrencyList()
+        Log.i(TAG, "Запущена ресихнронизация валют")
     }
 
     fun resyncLocations() {

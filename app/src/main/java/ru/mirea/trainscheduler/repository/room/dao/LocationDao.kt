@@ -23,4 +23,10 @@ interface LocationDao {
 
     @Query("DELETE FROM locations")
     fun clearLocations()
+
+    @Query("SELECT EXISTS(SELECT * FROM locations WHERE city=:city AND region=:region AND country=:country)")
+    fun locationExists(city: String?, region: String?, country: String?): Boolean
+
+    @Insert
+    fun addLocation(location: Location)
 }

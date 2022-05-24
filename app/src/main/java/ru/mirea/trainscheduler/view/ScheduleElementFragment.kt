@@ -1,5 +1,6 @@
 package ru.mirea.trainscheduler.view
 
+import android.app.AlertDialog
 import android.os.Bundle
 import android.view.*
 import androidx.fragment.app.Fragment
@@ -17,6 +18,7 @@ import ru.mirea.trainscheduler.model.ScheduleSegment
 import ru.mirea.trainscheduler.view.adapter.FollowStationAdapter
 import ru.mirea.trainscheduler.view.adapter.TicketAdapter
 import ru.mirea.trainscheduler.viewModel.ScheduleElementViewModel
+import java.lang.Exception
 
 class ScheduleElementFragment : Fragment() {
     companion object {
@@ -67,16 +69,20 @@ class ScheduleElementFragment : Fragment() {
         binding.date.setText(scheduleSegment.getDeparture())
         binding.travelTime.setText(parseTravelTime(scheduleSegment.getTravelTimeInSeconds()))
         lifecycleScope.launch(Dispatchers.IO) {
-            viewModel.getTickets().collect { tickets ->
-                requireActivity().runOnUiThread {
-                    ticketAdapter = TicketAdapter(tickets)
-                    binding.recyclerView.adapter = ticketAdapter
+            try {
+                viewModel.getTickets().collect { tickets ->
+                    requireActivity().runOnUiThread {
+                        ticketAdapter = TicketAdapter(tickets)
+                        binding.recyclerView.adapter = ticketAdapter
+                    }
                 }
-            }
-            viewModel.getFollowStations().collect { stations ->
-                requireActivity().runOnUiThread {
-                    stationAdapter = FollowStationAdapter(stations)
+                viewModel.getFollowStations().collect { stations ->
+                    requireActivity().runOnUiThread {
+                        stationAdapter = FollowStationAdapter(stations)
+                    }
                 }
+            } catch (e: Exception) {
+                requireActivity().runOnUiThread { showErrorDialog(e) }
             }
         }
         binding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
@@ -102,6 +108,13 @@ class ScheduleElementFragment : Fragment() {
         val days = hours / 24
         return (if (days > 0) "$days дней " else "" + if (hours > 0) "$hours часов " else "" +
                 if (minutes > 0) "$minutes минут" else "").trim()
+    }
+
+    private fun showErrorDialog(t: Throwable) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Ошибка")
+            .setMessage("Произошла ошибка: ${t.message}")
+            .setPositiveButton("OK") { dialog, id -> dialog.cancel() }.show()
     }
 
 }

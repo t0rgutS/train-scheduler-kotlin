@@ -8,7 +8,11 @@ interface LocalCurrencyRepository : RemoteCurrencyRepository {
 
     fun addCurrencyList(currencyList: List<Currency>)
 
+    fun addCurrency(currency: Currency)
+
     fun addExchange(exchange: CurrencyExchange)
+
+    fun getCurrencyCount(): Long
 
     fun getExchangeCount(): Long
 

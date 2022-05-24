@@ -28,6 +28,12 @@ interface ExchangeDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun addCurrencyList(currencyList: List<Currency>)
 
+    @Query("SELECT EXISTS(SELECT * FROM currencies WHERE code=:currencyCode)")
+    fun currencyExists(currencyCode: String): Boolean
+
+    @Insert
+    fun addCurrency(currency: Currency)
+
     @Query("DELETE FROM currency_exchange")
     fun clearExchanges()
 }
