@@ -6,7 +6,7 @@ import ru.mirea.trainscheduler.model.Currency
 interface CurrencyDataService: DataService {
     fun getCurrencies(): Flow<List<Currency>>
 
-    fun updateCurrencyList()
+    suspend fun updateCurrencyList()
 
     fun getCurrencyCount(): Flow<Long>
 

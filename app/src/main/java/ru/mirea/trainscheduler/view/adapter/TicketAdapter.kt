@@ -29,7 +29,7 @@ class TicketAdapter(private val tickets: List<Ticket>) :
             holder.binding.ticketName.setText(DEFAULT_TICKET_NAME)
         else
             holder.binding.ticketName.setText(item.name)
-        holder.binding.price.setText("${item.price} ${item.getCurrencyAsString()}")
+        holder.binding.price.setText("${String.format("%.2f", item.price)} ${item.getCurrencyAsString()}")
         holder.binding.etAvailable.isChecked = item.canBeElectronic == true
     }
 

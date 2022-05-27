@@ -55,7 +55,6 @@ class TrainScheduleFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProvider(this)[TrainScheduleViewModel::class.java]
-        //binding.schedule.layoutManager = LinearLayoutManager(requireContext())
         binding.transportType.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
                 if (from != null && to != null && binding.fromDate.text.isNotEmpty())
@@ -69,6 +68,8 @@ class TrainScheduleFragment : Fragment() {
             }
 
         })
+        binding.from.setAdapter(LocationAutoCompleteAdapter(requireContext(), emptyList()))
+        binding.to.setAdapter(LocationAutoCompleteAdapter(requireContext(), emptyList()))
 
         binding.from.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
@@ -82,14 +83,18 @@ class TrainScheduleFragment : Fragment() {
                     val searchBy: String = if (s[0].isUpperCase()) s.toString() else
                         s[0].uppercase() + s.substring(1)
                     lifecycleScope.launch(Dispatchers.IO) {
-                        viewModel.suggestLocations(searchBy).collect { suggested ->
-                            requireActivity().runOnUiThread {
-                                val stationListAdapter = LocationAutoCompleteAdapter(
-                                    requireContext(),
-                                    suggested
-                                )
-                                binding.from.setAdapter(stationListAdapter)
-                                stationListAdapter.notifyDataSetChanged()
+                        try {
+                            viewModel.suggestLocations(searchBy).collect { suggested ->
+                                requireActivity().runOnUiThread {
+                                    val adapter =
+                                        binding.from.adapter as LocationAutoCompleteAdapter
+                                    adapter.setLocations(suggested.sortedBy { it.city?.length })
+                                    adapter.notifyDataSetChanged()
+                                }
+                            }
+                        } catch (e: Exception) {
+                            activity?.runOnUiThread {
+                                showErrorDialog(e)
                             }
                         }
                     }
@@ -112,16 +117,13 @@ class TrainScheduleFragment : Fragment() {
                         try {
                             viewModel.suggestLocations(searchBy).collect { suggested ->
                                 requireActivity().runOnUiThread {
-                                    val stationListAdapter = LocationAutoCompleteAdapter(
-                                        requireContext(),
-                                        suggested
-                                    )
-                                    binding.to.setAdapter(stationListAdapter)
-                                    stationListAdapter.notifyDataSetChanged()
+                                    val adapter = binding.to.adapter as LocationAutoCompleteAdapter
+                                    adapter.setLocations(suggested.sortedBy { it.city?.length })
+                                    adapter.notifyDataSetChanged()
                                 }
                             }
                         } catch (e: Exception) {
-                            requireActivity().runOnUiThread {
+                            activity?.runOnUiThread {
                                 showErrorDialog(e)
                             }
                         }
@@ -207,7 +209,7 @@ class TrainScheduleFragment : Fragment() {
                                 binding.fromDate.text.toString())
                         }
                     } catch (e: Exception) {
-                        requireActivity().runOnUiThread {
+                        activity?.runOnUiThread {
                             showErrorDialog(e)
                         }
                     }
@@ -253,9 +255,9 @@ class TrainScheduleFragment : Fragment() {
     }
 
     private fun showErrorDialog(t: Throwable) {
-        AlertDialog.Builder(requireContext())
+        context?.let { AlertDialog.Builder(it)
             .setTitle("Ошибка")
             .setMessage("Произошла ошибка: ${t.message}")
-            .setPositiveButton("OK") { dialog, id -> dialog.cancel() }.show()
+            .setPositiveButton("OK") { dialog, id -> dialog.cancel() }.show() }
     }
 }

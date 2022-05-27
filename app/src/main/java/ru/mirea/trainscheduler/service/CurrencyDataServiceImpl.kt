@@ -2,12 +2,11 @@ package ru.mirea.trainscheduler.service
 
 import android.util.Log
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import ru.mirea.trainscheduler.model.Currency
-import ru.mirea.trainscheduler.repository.RemoteCurrencyRepository
 import ru.mirea.trainscheduler.repository.LocalCurrencyRepository
+import ru.mirea.trainscheduler.repository.RemoteCurrencyRepository
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -34,12 +33,10 @@ class CurrencyDataServiceImpl(
         return localRepository.getCurrencies()
     }
 
-    override fun updateCurrencyList() {
-        flow<Unit> {
-            remoteRepository.getCurrencies().collect { remoteCurrencies ->
-                remoteCurrencies.forEach { remoteCurrency ->
-                    localRepository.addCurrency(remoteCurrency)
-                }
+    override suspend fun updateCurrencyList() {
+        remoteRepository.getCurrencies().collect { remoteCurrencies ->
+            remoteCurrencies.forEach { remoteCurrency ->
+                localRepository.addCurrency(remoteCurrency)
             }
         }
     }

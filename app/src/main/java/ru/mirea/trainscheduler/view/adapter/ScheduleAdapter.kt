@@ -28,7 +28,7 @@ class ScheduleAdapter(private val scheduleList: List<ScheduleSegment>) :
 
     override fun onBindViewHolder(holder: ScheduleViewHolder, position: Int) {
         val item: ScheduleSegment = scheduleList[position]
-        holder.binding.fromTo.setText("${item.from?.title} --> ${item.to?.title}")
+        holder.binding.fromTo.setText("${item.from?.getFullName()} --> ${item.to?.getFullName()}")
         holder.binding.`when`.setText(item.getDeparture())
         holder.binding.travelTime.setText(parseTravelTime(item.getTravelTimeInSeconds()))
         holder.binding.price.setText(getPriceAsString(item.tickets))
@@ -58,9 +58,10 @@ class ScheduleAdapter(private val scheduleList: List<ScheduleSegment>) :
         val maxPriceTicket = tickets.maxByOrNull { it.price!! }
         if (minPriceTicket != null && maxPriceTicket != null) {
             return if (minPriceTicket.price == maxPriceTicket.price) {
-                "${minPriceTicket.price} ${minPriceTicket.getCurrencyAsString()}"
+                "${String.format("%.2f", minPriceTicket.price)} ${minPriceTicket.getCurrencyAsString()}"
             } else {
-                "от ${minPriceTicket.price} до ${maxPriceTicket.price} ${maxPriceTicket.getCurrencyAsString()}"
+                "от ${String.format("%.2f", minPriceTicket.price)} до " +
+                        "${String.format("%.2f", maxPriceTicket.price)} ${maxPriceTicket.getCurrencyAsString()}"
             }
         }
         return ""

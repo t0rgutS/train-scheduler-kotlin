@@ -57,21 +57,24 @@ class DisplayScheduleFragment : Fragment() {
                 viewModel.getSchedule().collect { scheduleList ->
                     if (scheduleList.isNotEmpty()) {
                         scheduleList.sortedBy { it.getDeparture() }
-                        requireActivity().runOnUiThread {
+                        activity?.runOnUiThread {
                             binding.schedule.adapter = ScheduleAdapter(scheduleList)
                         }
                     } else {
-                        requireActivity().runOnUiThread {
-                            AlertDialog.Builder(requireContext())
-                                .setTitle("Уведомление")
-                                .setMessage("Актуальные рейсы не найдены")
-                                .setPositiveButton("OK") { dialog, id -> dialog.cancel() }.show()
+                        activity?.runOnUiThread {
+                            context?.let {
+                                AlertDialog.Builder(it)
+                                    .setTitle("Уведомление")
+                                    .setMessage("Актуальные рейсы не найдены")
+                                    .setPositiveButton("OK") { dialog, id -> dialog.cancel() }
+                                    .show()
+                            }
                             findNavController().popBackStack()
                         }
                     }
                 }
             } catch (e: Exception) {
-                requireActivity().runOnUiThread {
+                activity?.runOnUiThread {
                     showErrorDialog(e)
                 }
             }
@@ -79,10 +82,12 @@ class DisplayScheduleFragment : Fragment() {
     }
 
     private fun showErrorDialog(t: Throwable) {
-        AlertDialog.Builder(requireContext())
-            .setTitle("Ошибка")
-            .setMessage("Произошла ошибка: ${t.message}")
-            .setPositiveButton("OK") { dialog, id -> dialog.cancel() }.show()
+        context?.let {
+            AlertDialog.Builder(it)
+                .setTitle("Ошибка")
+                .setMessage("Произошла ошибка: ${t.message}")
+                .setPositiveButton("OK") { dialog, id -> dialog.cancel() }.show()
+        }
     }
 
 }

@@ -45,12 +45,6 @@ class Station {
         return code
     }
 
-    private fun getLocation(): String {
-        if (!country.isNullOrEmpty() && !settlement.isNullOrEmpty())
-            return "$settlement, $country"
-        return "${if (!country.isNullOrEmpty()) country else settlement}"
-    }
-
     private fun resolveStationType(): String {
         return when(stationType) {
             "station" -> "станция"
@@ -67,8 +61,10 @@ class Station {
         }
     }
 
-    override fun toString(): String {
+    fun getFullName(): String {
         val resolvedStationType = resolveStationType()
-        return if(resolvedStationType != "") "$resolvedStationType " else "" + "$title (${getLocation()})"
+        if(resolvedStationType != "" && title?.contains(resolvedStationType) == false)
+            return "$resolvedStationType $title"
+        return title!!
     }
 }

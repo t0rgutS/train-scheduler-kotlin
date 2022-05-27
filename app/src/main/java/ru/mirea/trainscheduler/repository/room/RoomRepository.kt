@@ -53,7 +53,7 @@ class RoomRepository(
     }
 
     override fun currenciesExists(): Flow<Boolean> {
-        return exchangeDao.countCurrencies().map { it < 0 }
+        return exchangeDao.countCurrencies().map { it > 0 }
     }
 
     override fun addCurrencyList(currencyList: List<Currency>) {

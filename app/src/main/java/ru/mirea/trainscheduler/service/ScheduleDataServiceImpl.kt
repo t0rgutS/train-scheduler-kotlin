@@ -94,18 +94,16 @@ class ScheduleDataServiceImpl(
         return localRepository.getLocationCount()
     }
 
-    override fun updateLocationList() {
-        flow<Unit> {
-            remoteRepository.getAvailableLocations().collect { remoteLocations ->
-                if (remoteLocations.isNotEmpty()) {
-                    Log.d(TAG,
-                        "Выполняется ресинхронизация ${remoteLocations.size} локаций. " +
-                                "Для оперативного доступа локации сохраняются во временный кэш")
-                    remoteLocations.forEach { location ->
-                        if (!cachedLocations.contains(location))
-                            cachedLocations.add(location)
-                        localRepository.addLocation(location)
-                    }
+    override suspend fun updateLocationList() {
+        remoteRepository.getAvailableLocations().collect { remoteLocations ->
+            if (remoteLocations.isNotEmpty()) {
+                Log.d(TAG,
+                    "Выполняется ресинхронизация ${remoteLocations.size} локаций. " +
+                            "Для оперативного доступа локации сохраняются во временный кэш")
+                remoteLocations.forEach { location ->
+                    if (!cachedLocations.contains(location))
+                        cachedLocations.add(location)
+                    localRepository.addLocation(location)
                 }
             }
         }

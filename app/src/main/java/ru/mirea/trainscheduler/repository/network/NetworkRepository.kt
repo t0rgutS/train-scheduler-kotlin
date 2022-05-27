@@ -111,7 +111,7 @@ class NetworkRepository : RemoteScheduleRepository, RemoteCurrencyRepository {
                 }
             } else {
                 val errorMessage = response.errorBody()?.string()
-                Log.e(TAG, "Ошибка получения списка локаций: $errorMessage")
+                Log.e(TAG, "Ошибка получения расписания: $errorMessage")
                 throw RemoteRepositoryException("getSchedule", response.code(), errorMessage)
             }
         } while (readCount < totalCount)
@@ -150,7 +150,7 @@ class NetworkRepository : RemoteScheduleRepository, RemoteCurrencyRepository {
                     close()
                 } else {
                     val errorMessage = response.errorBody()?.string()
-                    Log.e(TAG, "Ошибка получения списка локаций: $errorMessage")
+                    Log.e(TAG, "Ошибка получения списка станций следования: $errorMessage")
                     close(RemoteRepositoryException("getFollowStations",
                         response.code(),
                         errorMessage))
@@ -214,7 +214,7 @@ class NetworkRepository : RemoteScheduleRepository, RemoteCurrencyRepository {
                     close()
                 } else {
                     val errorMessage = response.errorBody()?.string()
-                    Log.e(TAG, "Ошибка получения списка локаций: $errorMessage")
+                    Log.e(TAG, "Ошибка получения списка валют: $errorMessage")
                     close(RemoteRepositoryException("getCurrencies", response.code(), errorMessage))
                 }
             }
@@ -230,13 +230,13 @@ class NetworkRepository : RemoteScheduleRepository, RemoteCurrencyRepository {
 
     override fun getExchange(source: String, target: String): Flow<CurrencyExchange?> =
         callbackFlow {
-            Log.d(TAG, "Запрос на получение данных перевода из $source в $target")
+            Log.d(TAG, "Запрос на получение курса валют $source --> $target")
             val exchangeCallback = object : Callback<ConvertPair?> {
                 override fun onResponse(
                     call: Call<ConvertPair?>,
                     response: Response<ConvertPair?>,
                 ) {
-                    Log.d(TAG, "Запрос на получение данных перевода из $source в $target " +
+                    Log.d(TAG, "Запрос на получение курса валют $source --> $target " +
                             "завершился с кодом ${response.code()}")
                     if (response.isSuccessful) {
                         if (response.body() != null)
@@ -245,7 +245,7 @@ class NetworkRepository : RemoteScheduleRepository, RemoteCurrencyRepository {
                         close()
                     } else {
                         val errorMessage = response.errorBody()?.string()
-                        Log.e(TAG, "Ошибка получения списка локаций: $errorMessage")
+                        Log.e(TAG, "Ошибка получения курса валют: $errorMessage")
                         close(RemoteRepositoryException("getExchange",
                             response.code(),
                             errorMessage))

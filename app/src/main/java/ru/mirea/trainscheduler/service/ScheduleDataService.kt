@@ -25,5 +25,5 @@ interface ScheduleDataService : DataService {
 
     fun getLocationCount(): Flow<Long>
 
-    fun updateLocationList()
+    suspend fun updateLocationList()
 }

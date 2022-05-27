@@ -84,7 +84,7 @@ class SettingsFragment : Fragment() {
                 }
 
             } catch (e: Exception) {
-                requireActivity().runOnUiThread { showErrorDialog(e) }
+                activity?.runOnUiThread { showErrorDialog(e) }
             }
         }
 
@@ -121,10 +121,10 @@ class SettingsFragment : Fragment() {
     }
 
     private fun showErrorDialog(t: Throwable) {
-        AlertDialog.Builder(requireContext())
+        context?.let { AlertDialog.Builder(it)
             .setTitle("Ошибка")
             .setMessage("Произошла ошибка: ${t.message}")
-            .setPositiveButton("OK") { dialog, id -> dialog.cancel() }.show()
+            .setPositiveButton("OK") { dialog, id -> dialog.cancel() }.show() }
     }
 
 }

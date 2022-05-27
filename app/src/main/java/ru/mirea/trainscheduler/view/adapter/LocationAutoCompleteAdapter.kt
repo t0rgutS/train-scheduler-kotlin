@@ -11,8 +11,12 @@ import ru.mirea.trainscheduler.model.Location
 
 class LocationAutoCompleteAdapter(
     private val initContext: Context,
-    val locations: List<Location>,
+    private var locations: List<Location>,
 ) : ArrayAdapter<Location>(initContext, R.layout.auto_complete_item) {
+    fun setLocations(locations: List<Location>) {
+        this.locations = locations
+    }
+
     override fun getCount(): Int {
         return locations.size
     }

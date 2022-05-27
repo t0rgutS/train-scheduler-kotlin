@@ -64,8 +64,8 @@ class ScheduleElementFragment : Fragment() {
         }
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
         val scheduleSegment = viewModel.getScheduleSegment()!!
-        binding.from.setText(scheduleSegment.from?.title)
-        binding.to.setText(scheduleSegment.to?.title)
+        binding.from.setText(scheduleSegment.from?.getFullName())
+        binding.to.setText(scheduleSegment.to?.getFullName())
         binding.date.setText(scheduleSegment.getDeparture())
         binding.travelTime.setText(parseTravelTime(scheduleSegment.getTravelTimeInSeconds()))
         lifecycleScope.launch(Dispatchers.IO) {
@@ -82,7 +82,7 @@ class ScheduleElementFragment : Fragment() {
                     }
                 }
             } catch (e: Exception) {
-                requireActivity().runOnUiThread { showErrorDialog(e) }
+                activity?.runOnUiThread { showErrorDialog(e) }
             }
         }
         binding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
@@ -111,10 +111,10 @@ class ScheduleElementFragment : Fragment() {
     }
 
     private fun showErrorDialog(t: Throwable) {
-        AlertDialog.Builder(requireContext())
+        context?.let { AlertDialog.Builder(it)
             .setTitle("Ошибка")
             .setMessage("Произошла ошибка: ${t.message}")
-            .setPositiveButton("OK") { dialog, id -> dialog.cancel() }.show()
+            .setPositiveButton("OK") { dialog, id -> dialog.cancel() }.show() }
     }
 
 }
