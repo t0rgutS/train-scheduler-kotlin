@@ -3,6 +3,7 @@ package ru.mirea.trainscheduler.service
 import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import ru.mirea.trainscheduler.model.Currency
 import ru.mirea.trainscheduler.repository.RemoteCurrencyRepository
@@ -20,7 +21,7 @@ class CurrencyDataServiceImpl(
     }
 
     override suspend fun init() {
-        if (!localRepository.currenciesExists()) {
+        if (!localRepository.currenciesExists().first()) {
             remoteRepository.getCurrencies().collect { remoteCurrencies ->
                 Log.d(TAG, "Выполняется загрузка $remoteCurrencies кодов валют в локальную " +
                         "базу данных")
@@ -43,11 +44,11 @@ class CurrencyDataServiceImpl(
         }
     }
 
-    override fun getCurrencyCount(): Long {
+    override fun getCurrencyCount(): Flow<Long> {
         return localRepository.getCurrencyCount()
     }
 
-    override fun getExchangeCount(): Long {
+    override fun getExchangeCount(): Flow<Long> {
         return localRepository.getExchangeCount()
     }
 

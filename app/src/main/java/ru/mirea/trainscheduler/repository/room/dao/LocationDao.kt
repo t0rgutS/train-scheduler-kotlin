@@ -16,7 +16,7 @@ interface LocationDao {
     fun suggestLocations(suggestBy: String): Flow<List<Location>>
 
     @Query("SELECT COUNT(*) FROM locations")
-    fun countLocations(): Long
+    fun countLocations(): Flow<Long>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun addLocationList(locationList: List<Location>)

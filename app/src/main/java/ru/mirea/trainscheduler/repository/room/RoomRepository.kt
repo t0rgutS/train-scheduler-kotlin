@@ -2,6 +2,7 @@ package ru.mirea.trainscheduler.repository.room
 
 import android.util.Log
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import ru.mirea.trainscheduler.model.Currency
 import ru.mirea.trainscheduler.model.CurrencyExchange
 import ru.mirea.trainscheduler.model.Location
@@ -34,12 +35,12 @@ class RoomRepository(
         }
     }
 
-    override fun getLocationCount(): Long {
+    override fun getLocationCount(): Flow<Long> {
         return locationDao.countLocations()
     }
 
-    override fun locationsExists(): Boolean {
-        return locationDao.countLocations() > 0//.map { it > 0 }
+    override fun locationsExists(): Flow<Boolean> {
+        return locationDao.countLocations().map { it > 0 }
     }
 
     override fun suggestLocations(suggestBy: String): Flow<List<Location>> {
@@ -51,8 +52,8 @@ class RoomRepository(
         return if (found.size == 1) found[0] else null
     }
 
-    override fun currenciesExists(): Boolean {
-        return exchangeDao.countCurrencies() > 0
+    override fun currenciesExists(): Flow<Boolean> {
+        return exchangeDao.countCurrencies().map { it < 0 }
     }
 
     override fun addCurrencyList(currencyList: List<Currency>) {
@@ -79,11 +80,11 @@ class RoomRepository(
         }
     }
 
-    override fun getCurrencyCount(): Long {
+    override fun getCurrencyCount(): Flow<Long> {
         return exchangeDao.countCurrencies()
     }
 
-    override fun getExchangeCount(): Long {
+    override fun getExchangeCount(): Flow<Long> {
         return exchangeDao.countExchanges()
     }
 

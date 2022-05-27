@@ -51,7 +51,24 @@ class Station {
         return "${if (!country.isNullOrEmpty()) country else settlement}"
     }
 
+    private fun resolveStationType(): String {
+        return when(stationType) {
+            "station" -> "станция"
+            "platform" -> "платформа"
+            "stop" -> "остановочный пункт"
+            "checkpoint" -> "блок-пост"
+            "post" -> "пост"
+            "crossing" -> "разъезд"
+            "overtaking_point" -> "обгонный пункт"
+            "train_station" -> "вокзал"
+            "bus_station" -> "автовокзал"
+            "bus_stop" -> "автобусная остановка"
+            else -> ""
+        }
+    }
+
     override fun toString(): String {
-        return title + " (${getLocation()})"
+        val resolvedStationType = resolveStationType()
+        return if(resolvedStationType != "") "$resolvedStationType " else "" + "$title (${getLocation()})"
     }
 }

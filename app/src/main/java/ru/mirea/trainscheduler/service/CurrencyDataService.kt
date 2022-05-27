@@ -8,9 +8,9 @@ interface CurrencyDataService: DataService {
 
     fun updateCurrencyList()
 
-    fun getCurrencyCount(): Long
+    fun getCurrencyCount(): Flow<Long>
 
-    fun getExchangeCount(): Long
+    fun getExchangeCount(): Flow<Long>
 
     fun clearExchanges()
 

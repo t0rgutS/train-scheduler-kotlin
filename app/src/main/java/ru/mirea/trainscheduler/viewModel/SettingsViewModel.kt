@@ -15,11 +15,11 @@ class SettingsViewModel : ViewModel() {
         return ServiceLocator.getCurrencyService().getCurrencies()
     }
 
-    fun getLocationCount(): Long {
+    fun getLocationCount(): Flow<Long> {
         return ServiceLocator.getScheduleService().getLocationCount()
     }
 
-    fun getCurrencyCount(): Long {
+    fun getCurrencyCount(): Flow<Long> {
         return ServiceLocator.getCurrencyService().getCurrencyCount()
     }
 
@@ -33,7 +33,7 @@ class SettingsViewModel : ViewModel() {
         Log.i(TAG, "Запущена ресинхронизация локаций")
     }
 
-    fun getExchangeCount(): Long {
+    fun getExchangeCount(): Flow<Long> {
         return ServiceLocator.getCurrencyService().getExchangeCount()
     }
 

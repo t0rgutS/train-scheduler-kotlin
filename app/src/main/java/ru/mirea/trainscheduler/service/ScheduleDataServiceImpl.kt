@@ -2,6 +2,7 @@ package ru.mirea.trainscheduler.service
 
 import android.util.Log
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import ru.mirea.trainscheduler.model.Location
@@ -21,7 +22,7 @@ class ScheduleDataServiceImpl(
     private val cachedLocations: MutableList<Location> = mutableListOf()
 
     override suspend fun init() {
-        if (!localRepository.locationsExists()) {
+        if (!localRepository.locationsExists().first()) {
             remoteRepository.getAvailableLocations().collect { remoteLocations ->
                 Log.d(TAG,
                     "Выполняется загрузка ${remoteLocations.size} в локальную базу данных. " +
@@ -89,7 +90,7 @@ class ScheduleDataServiceImpl(
         return remoteRepository.getFollowStations(uid, from, to)
     }
 
-    override fun getLocationCount(): Long {
+    override fun getLocationCount(): Flow<Long> {
         return localRepository.getLocationCount()
     }
 

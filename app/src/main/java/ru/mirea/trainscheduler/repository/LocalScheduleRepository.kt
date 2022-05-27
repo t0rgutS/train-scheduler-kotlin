@@ -8,9 +8,9 @@ interface LocalScheduleRepository {
 
     fun addLocation(location: Location)
 
-    fun getLocationCount(): Long
+    fun getLocationCount(): Flow<Long>
 
-    fun locationsExists(): Boolean
+    fun locationsExists(): Flow<Boolean>
 
     fun suggestLocations(suggestBy: String): Flow<List<Location>>
 

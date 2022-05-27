@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import ru.mirea.trainscheduler.TrainSchedulerConstants
 import ru.mirea.trainscheduler.databinding.SettingsFragmentBinding
@@ -81,21 +82,41 @@ class SettingsFragment : Fragment() {
                         }
                     }
                 }
+
             } catch (e: Exception) {
                 requireActivity().runOnUiThread { showErrorDialog(e) }
             }
         }
-        binding.locationCount.setText(viewModel.getLocationCount().toString())
-        binding.resyncLocations.setOnClickListener {
-            viewModel.resyncLocations()
+
+        lifecycleScope.launch {
+            viewModel.getLocationCount().collect { locationCount ->
+                binding.locationCount.setText(locationCount.toString())
+                binding.resyncLocations.setOnClickListener {
+                    viewModel.resyncLocations()
+                    Toast.makeText(requireContext(), "Ресинхронизация локаций запущена",
+                        Toast.LENGTH_LONG).show()
+                }
+            }
         }
-        binding.currencyCount.setText(viewModel.getCurrencyCount().toString())
-        binding.resyncCurrencies.setOnClickListener {
-            viewModel.resyncCurrencies()
+        lifecycleScope.launch {
+            viewModel.getCurrencyCount().collect { currencyCount ->
+                binding.currencyCount.setText(currencyCount.toString())
+                binding.resyncCurrencies.setOnClickListener {
+                    viewModel.resyncCurrencies()
+                    Toast.makeText(requireContext(), "Ресинхронизация валют запущена",
+                        Toast.LENGTH_LONG).show()
+                }
+            }
         }
-        binding.exchangeCount.setText(viewModel.getExchangeCount().toString())
-        binding.clearExchanges.setOnClickListener {
-            viewModel.clearExchanges()
+        lifecycleScope.launch {
+            viewModel.getExchangeCount().collect { exchangeCount ->
+                binding.exchangeCount.setText(exchangeCount.toString())
+                binding.clearExchanges.setOnClickListener {
+                    viewModel.clearExchanges()
+                    Toast.makeText(requireContext(), "Очистка курсов запущена",
+                        Toast.LENGTH_LONG).show()
+                }
+            }
         }
     }
 

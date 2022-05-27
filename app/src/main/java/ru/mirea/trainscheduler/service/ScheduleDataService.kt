@@ -23,7 +23,7 @@ interface ScheduleDataService : DataService {
         to: String?,
     ): Flow<List<Station>>
 
-    fun getLocationCount(): Long
+    fun getLocationCount(): Flow<Long>
 
     fun updateLocationList()
 }
