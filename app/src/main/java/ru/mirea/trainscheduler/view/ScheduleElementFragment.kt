@@ -76,6 +76,12 @@ class ScheduleElementFragment : Fragment() {
                         binding.recyclerView.adapter = ticketAdapter
                     }
                 }
+            } catch (e: Exception) {
+                activity?.runOnUiThread { showErrorDialog(e) }
+            }
+        }
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
                 viewModel.getFollowStations().collect { stations ->
                     requireActivity().runOnUiThread {
                         stationAdapter = FollowStationAdapter(stations)
@@ -111,10 +117,12 @@ class ScheduleElementFragment : Fragment() {
     }
 
     private fun showErrorDialog(t: Throwable) {
-        context?.let { AlertDialog.Builder(it)
-            .setTitle("Ошибка")
-            .setMessage("Произошла ошибка: ${t.message}")
-            .setPositiveButton("OK") { dialog, id -> dialog.cancel() }.show() }
+        context?.let {
+            AlertDialog.Builder(it)
+                .setTitle("Ошибка")
+                .setMessage("Произошла ошибка: ${t.message}")
+                .setPositiveButton("OK") { dialog, id -> dialog.cancel() }.show()
+        }
     }
 
 }

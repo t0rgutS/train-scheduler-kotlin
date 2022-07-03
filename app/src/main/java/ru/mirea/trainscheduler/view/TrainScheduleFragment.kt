@@ -13,6 +13,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.tabs.TabLayout
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import ru.mirea.trainscheduler.R
 import ru.mirea.trainscheduler.databinding.TrainScheduleFragmentBinding
@@ -69,7 +70,23 @@ class TrainScheduleFragment : Fragment() {
 
         })
         binding.from.setAdapter(LocationAutoCompleteAdapter(requireContext(), emptyList()))
+        lifecycleScope.launch {
+            viewModel.getSuggestedLocations(true).collect { suggested ->
+                val adapter =
+                    binding.from.adapter as LocationAutoCompleteAdapter
+                adapter.setLocations(suggested.sortedBy { it.city?.length })
+                adapter.notifyDataSetChanged()
+            }
+        }
         binding.to.setAdapter(LocationAutoCompleteAdapter(requireContext(), emptyList()))
+        lifecycleScope.launch {
+            viewModel.getSuggestedLocations(false).collect { suggested ->
+                val adapter =
+                    binding.to.adapter as LocationAutoCompleteAdapter
+                adapter.setLocations(suggested.sortedBy { it.city?.length })
+                adapter.notifyDataSetChanged()
+            }
+        }
 
         binding.from.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
@@ -84,14 +101,7 @@ class TrainScheduleFragment : Fragment() {
                         s[0].uppercase() + s.substring(1)
                     lifecycleScope.launch(Dispatchers.IO) {
                         try {
-                            viewModel.suggestLocations(searchBy).collect { suggested ->
-                                requireActivity().runOnUiThread {
-                                    val adapter =
-                                        binding.from.adapter as LocationAutoCompleteAdapter
-                                    adapter.setLocations(suggested.sortedBy { it.city?.length })
-                                    adapter.notifyDataSetChanged()
-                                }
-                            }
+                            viewModel.suggestLocations(searchBy, true)
                         } catch (e: Exception) {
                             activity?.runOnUiThread {
                                 showErrorDialog(e)
@@ -115,13 +125,7 @@ class TrainScheduleFragment : Fragment() {
                         s[0].uppercase() + s.substring(1)
                     lifecycleScope.launch(Dispatchers.IO) {
                         try {
-                            viewModel.suggestLocations(searchBy).collect { suggested ->
-                                requireActivity().runOnUiThread {
-                                    val adapter = binding.to.adapter as LocationAutoCompleteAdapter
-                                    adapter.setLocations(suggested.sortedBy { it.city?.length })
-                                    adapter.notifyDataSetChanged()
-                                }
-                            }
+                            viewModel.suggestLocations(searchBy, false)
                         } catch (e: Exception) {
                             activity?.runOnUiThread {
                                 showErrorDialog(e)
@@ -255,9 +259,11 @@ class TrainScheduleFragment : Fragment() {
     }
 
     private fun showErrorDialog(t: Throwable) {
-        context?.let { AlertDialog.Builder(it)
-            .setTitle("Ошибка")
-            .setMessage("Произошла ошибка: ${t.message}")
-            .setPositiveButton("OK") { dialog, id -> dialog.cancel() }.show() }
+        context?.let {
+            AlertDialog.Builder(it)
+                .setTitle("Ошибка")
+                .setMessage("Произошла ошибка: ${t.message}")
+                .setPositiveButton("OK") { dialog, id -> dialog.cancel() }.show()
+        }
     }
 }
